@@ -2,8 +2,8 @@
 {
     public class ChessPiece
     {
-        // True for white, false for black
-        public bool Color { get; protected set; }
+        // 1 for white, -1 for black
+        public int Color { get; protected set; }
 
         // String will always be exact piece name (king, queen, rook, bishop, knight, or pawn)
         public string Type { get; protected set; }
@@ -15,7 +15,7 @@
         /// <summary>
         /// Creates a new instance of the ChessPiece class, given defining parameters
         /// </summary>
-        public ChessPiece(bool color, string type, bool captured) 
+        public ChessPiece(int color, string type, bool captured) 
         {
             Color = color;
             Type = type;
