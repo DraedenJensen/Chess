@@ -3,6 +3,7 @@
     public class Chessboard
     {
         public Dictionary<(int, int), ChessPiece> GameBoard { get; protected set; }
+        public HashSet<ChessPiece> capturedPieces;
 
         private bool whiteInCheck;
         private bool blackInCheck;
@@ -15,6 +16,8 @@
         public Chessboard()
         {
             GameBoard = new();
+            capturedPieces = new();
+            
             whiteInCheck = false;
             blackInCheck = false;
             turn = 1;
@@ -40,58 +43,108 @@
                 GameBoard.Add((i, 7), blackPawn);
             }
 
-            foreach (var entry in GameBoard) 
-            {
-                UpdatePossibleMoves(entry.Key, entry.Value);
-            }
+            UpdateAllPiecesPossibleMoves();
         }
         
-        public void MovePiece((int, int) oldPosition, (int, int) newPosition)
+        /// <summary>
+        /// Changes the location of a given piece, then updates the state of the game board accordingly
+        /// </summary>
+        /// <param name="oldPosition">Current position of the piece to move</param>
+        /// <param name="newPosition">New position to move this piece to</param>
+        /// <returns>True if the move was successful, false otherwise</returns>
+        public bool MovePiece((int, int) oldPosition, (int, int) newPosition)
         {
+            if (UpdateCoordinates(oldPosition, newPosition))
+            {
+                turn++;
+                UpdateAllPiecesPossibleMoves();
+                return true;
 
-        }
+                //TODO these haven't been implemented and I'm not entirely sure how they'll end up conveying their results
+                //CheckForCheck();
+                //CheckForMate();
+            }
 
-        private void UpdateCoordinates((int, int) oldPosition, (int, int) newPosition)
-        {
-
+            return false;
         }
 
         /// <summary>
-        /// Private helper method which updates the set of possible moves for a given piece. This method is called for every
-        /// piece at the start of the game, then updated after every move
+        /// Private helper method which changes the coordinates of a piece being moved, after ensuring that the desired move
+        /// is allowed
         /// </summary>
-        /// <param name="position">New position of the piece being moved</param>
-        /// <param name="piece">Piece at that position</param>
-        private void UpdatePossibleMoves((int, int) position,ChessPiece piece) 
+        /// <param name="oldPosition">Current position of the piece to move</param>
+        /// <param name="newPosition">New position we're moving this piece to</param>
+        /// <returns>
+        /// True if the move is allowed, and was completed. Otherwise, nothing was changed on the board, so the method 
+        /// returns false
+        /// </returns>
+        private bool UpdateCoordinates((int, int) oldPosition, (int, int) newPosition)
         {
-            //TODO deal with moving into check
+            ChessPiece piece = GameBoard[oldPosition];
 
-            int x = position.Item1;
-            int y = position.Item2;
-
-            switch(piece.Type) 
+            if (piece.AvailableMoves.Contains(newPosition))
             {
-                case "pawn":
-                    piece.AvailableMoves = GetPossibleMovesPawn(x, y, piece);
-                    break;
-                case "knight":
-                    piece.AvailableMoves = GetPossibleMovesKnight(x, y, piece);
-                    break;
-                case "bishop":
-                    piece.AvailableMoves = GetPossibleMovesBishop(x, y, piece);
-                    break;
-                case "rook":
-                    piece.AvailableMoves = GetPossibleMovesRook(x, y, piece);
-                    break;
-                case "queen":
-                    piece.AvailableMoves = GetPossibleMovesQueen(x, y, piece);
-                    break;
-                case "king":
-                    piece.AvailableMoves = GetPossibleMovesKing(x, y, piece);
-                    break;
+                GameBoard.Remove(oldPosition);
+
+                if (GameBoard.ContainsKey(newPosition))
+                {
+                    capturedPieces.Add(GameBoard[newPosition]);
+                    GameBoard[newPosition] = piece;
+                } else
+                {
+                    GameBoard.Add(newPosition, piece);
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Private helper method which updates the set of possible moves for all pieces on the board. This method is called for
+        /// every piece at the start of the game, then updated after every move
+        /// </summary>
+        private void UpdateAllPiecesPossibleMoves()
+        {
+            foreach (var entry in GameBoard)
+            {
+                //TODO deal with moving into check
+
+                int x = entry.Key.Item1;
+                int y = entry.Key.Item2;
+                ChessPiece piece = entry.Value;
+
+                switch (piece.Type)
+                {
+                    case "pawn":
+                        piece.AvailableMoves = GetPossibleMovesPawn(x, y, piece);
+                        break;
+                    case "knight":
+                        piece.AvailableMoves = GetPossibleMovesKnight(x, y, piece);
+                        break;
+                    case "bishop":
+                        piece.AvailableMoves = GetPossibleMovesBishop(x, y, piece);
+                        break;
+                    case "rook":
+                        piece.AvailableMoves = GetPossibleMovesRook(x, y, piece);
+                        break;
+                    case "queen":
+                        piece.AvailableMoves = GetPossibleMovesQueen(x, y, piece);
+                        break;
+                    case "king":
+                        piece.AvailableMoves = GetPossibleMovesKing(x, y, piece);
+                        break;
+                }
             }
         }
 
+        /// <summary>
+        /// Private helper method to retrieve possible moves for a given pawn
+        /// </summary>
+        /// <param name="x">File of this piece</param>
+        /// <param name="y">Rank of this piece</param>
+        /// <param name="piece">This piece iself</param>
+        /// <returns>The updated set of available moves for this piece</returns>
         private HashSet<(int, int)> GetPossibleMovesPawn(int x, int y, ChessPiece piece)
         {
             int color = piece.Color;
@@ -136,12 +189,20 @@
             return newMoves;
         }
 
+
         private HashSet<(int, int)> PromotePawn(int x, int y)
         {
             //TODO
             return new HashSet<(int, int)>();
         }
 
+        /// <summary>
+        /// Private helper method to retrieve possible moves for a given knight
+        /// </summary>
+        /// <param name="x">File of this piece</param>
+        /// <param name="y">Rank of this piece</param>
+        /// <param name="piece">This piece iself</param>
+        /// <returns>The updated set of available moves for this piece</returns>
         private HashSet<(int, int)> GetPossibleMovesKnight(int x, int y, ChessPiece piece)
         {
             HashSet<(int, int)> newMoves = new();
@@ -182,40 +243,70 @@
             return newMoves;
         }
 
+        /// <summary>
+        /// Private helper method to retrieve possible moves for a given bishop
+        /// </summary>
+        /// <param name="x">File of this piece</param>
+        /// <param name="y">Rank of this piece</param>
+        /// <param name="piece">This piece iself</param>
+        /// <returns>The updated set of available moves for this piece</returns>
         private HashSet<(int, int)> GetPossibleMovesBishop(int x, int y, ChessPiece piece)
         {
             HashSet<(int, int)> newMoves = new();
 
-            // 4 nested for loops iterate over the bishop's 4 diagonal directions
-            for (int g = -1; g < 2; g += 2)
-            {
-                for (int i = x + g; i < 9 && i > 0; i += g)
-                {
-                    for (int h = -1; h < 2; h += 2)
-                    {
-                        for (int j = y + h; j < 9 && j > 0; j += h)
-                        {
-                            // If a square is empty, the bishop can move there
-                            // If a square has an enemy piece, the bishop can move there, but can't continue any further on the diagonal
-                            // If a square has a friendly piece, the bishop can't move there or continue any further on the diagonal
-                            if (!GameBoard.ContainsKey((i, j))) {
-                                newMoves.Add((i, j));
-                            } else if (GameBoard[(i, j)].Color != piece.Color)
-                            {
-                                newMoves.Add((i, j));
-                                break;
-                            } else
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            BishopHelper(newMoves, x, y, piece, 1, 1);
+            BishopHelper(newMoves, x, y, piece, 1, -1);
+            BishopHelper(newMoves, x, y, piece, -1, 1);
+            BishopHelper(newMoves, x, y, piece, -1, -1);
 
             return newMoves;
         }
 
+        /// <summary>
+        /// Private helper method used for determining the available moves for a bishop. During each bishop calculation, 
+        /// this method will be called 4 times, each one expanding out in 1 of the 4 diagonal directions from the bishop's
+        /// current position
+        /// </summary>
+        /// <param name="xMultiplier">Always either 1 or -1, determines which horizontal direction we're expanding in</param>
+        /// <param name="yMultiplier">Always either 1 or -1, determines which vertical direction we're expanding in</param>
+        private void BishopHelper(HashSet<(int, int)> newMoves, int x, int y, ChessPiece piece, int xMultiplier, int yMultiplier)
+        {
+            for (int i = 1; i < 8; i++)
+            {
+                int xi = x + xMultiplier * i;
+                int yi = y + yMultiplier * i;
+
+                if (xi > 0 && xi < 9 && yi > 0 && yi < 9)
+                {
+                    // Now we're inside the innermost for loop, so we've reached one individual square to be assessed
+                    
+                    // If a square is empty, the bishop can move there
+                    // If a square has an enemy piece, the bishop can move there, but can't continue any further on the diagonal
+                    // If a square has a friendly piece, the bishop can't move there or continue any further on the diagonal
+                    if (!GameBoard.ContainsKey((xi, yi)))
+                    {
+                        newMoves.Add((xi, yi));
+                    }
+                    else if (GameBoard[(xi, yi)].Color != piece.Color)
+                    {
+                        newMoves.Add((xi, yi));
+                        break;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Private helper method to retrieve possible moves for a given rook
+        /// </summary>
+        /// <param name="x">File of this piece</param>
+        /// <param name="y">Rank of this piece</param>
+        /// <param name="piece">This piece iself</param>
+        /// <returns>The updated set of available moves for this piece</returns>
         private HashSet<(int, int)> GetPossibleMovesRook(int x, int y, ChessPiece piece)
         {
             HashSet<(int, int)> newMoves = new();
@@ -267,6 +358,13 @@
             return newMoves;
         }
 
+        /// <summary>
+        /// Private helper method to retrieve possible moves for a given queen
+        /// </summary>
+        /// <param name="x">File of this piece</param>
+        /// <param name="y">Rank of this piece</param>
+        /// <param name="piece">This piece iself</param>
+        /// <returns>The updated set of available moves for this piece</returns>
         private HashSet<(int, int)> GetPossibleMovesQueen(int x, int y, ChessPiece piece)
         {
             // A queen is just a bishop plus a rook
@@ -277,6 +375,13 @@
             return diagonalMoves;
         }
 
+        /// <summary>
+        /// Private helper method to retrieve possible moves for a given king
+        /// </summary>
+        /// <param name="x">File of this piece</param>
+        /// <param name="y">Rank of this piece</param>
+        /// <param name="piece">This piece iself</param>
+        /// <returns>The updated set of available moves for this piece</returns>
         private HashSet<(int, int)> GetPossibleMovesKing(int x, int y, ChessPiece piece)
         {
             HashSet<(int, int)> newMoves = new();
@@ -312,6 +417,5 @@
         {
           
         }
-        
     }
 }
