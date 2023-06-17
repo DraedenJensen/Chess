@@ -3,7 +3,7 @@
     public class Chessboard
     {
         public Dictionary<(int, int), ChessPiece> GameBoard { get; protected set; }
-        public HashSet<ChessPiece> CapturedPieces;
+        public HashSet<ChessPiece> CapturedPieces { get; protected set; }
 
         private bool whiteInCheck;
         private bool blackInCheck;
@@ -43,7 +43,10 @@
                 GameBoard.Add((i, 7), blackPawn);
             }
 
-            UpdateAllPiecesPossibleMoves();
+            foreach (var entry in GameBoard)
+            {
+                UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
+            }
         }
         
         /// <summary>
@@ -57,7 +60,16 @@
             if (UpdateCoordinates(oldPosition, newPosition))
             {
                 turn++;
-                UpdateAllPiecesPossibleMoves();
+                foreach (var entry in GameBoard)
+                {
+                    //I'd like to figure out what's wrong with the commented out code -- I don't wanna recalculate every single piece every time
+                    UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                    //if (entry.Value.AvailableMoves.Contains(oldPosition) || entry.Value.AvailableMoves.Contains(newPosition))
+                    //{
+                    //    UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                    //}
+                }
+
                 return true;
 
                 //TODO these haven't been implemented and I'm not entirely sure how they'll end up conveying their results
@@ -104,37 +116,30 @@
         /// Private helper method which updates the set of possible moves for all pieces on the board. This method is called for
         /// every piece at the start of the game, then updated after every move
         /// </summary>
-        private void UpdateAllPiecesPossibleMoves()
+        private void UpdatePossibleMoves(int x, int y, ChessPiece piece)
         {
-            foreach (var entry in GameBoard)
+            //TODO deal with moving into check
+
+            switch (piece.Type)
             {
-                //TODO deal with moving into check
-
-                int x = entry.Key.Item1;
-                int y = entry.Key.Item2;
-                ChessPiece piece = entry.Value;
-
-                switch (piece.Type)
-                {
-                    case "pawn":
-                        piece.AvailableMoves = GetPossibleMovesPawn(x, y, piece);
-                        break;
-                    case "knight":
-                        piece.AvailableMoves = GetPossibleMovesKnight(x, y, piece);
-                        break;
-                    case "bishop":
-                        piece.AvailableMoves = GetPossibleMovesBishop(x, y, piece);
-                        break;
-                    case "rook":
-                        piece.AvailableMoves = GetPossibleMovesRook(x, y, piece);
-                        break;
-                    case "queen":
-                        piece.AvailableMoves = GetPossibleMovesQueen(x, y, piece);
-                        break;
-                    case "king":
-                        piece.AvailableMoves = GetPossibleMovesKing(x, y, piece);
-                        break;
-                }
+                case "pawn":
+                    piece.AvailableMoves = GetPossibleMovesPawn(x, y, piece);
+                    break;
+                case "knight":
+                    piece.AvailableMoves = GetPossibleMovesKnight(x, y, piece);
+                    break;
+                case "bishop":
+                    piece.AvailableMoves = GetPossibleMovesBishop(x, y, piece);
+                    break;
+                case "rook":
+                    piece.AvailableMoves = GetPossibleMovesRook(x, y, piece);
+                    break;
+                case "queen":
+                    piece.AvailableMoves = GetPossibleMovesQueen(x, y, piece);
+                    break;
+                case "king":
+                    piece.AvailableMoves = GetPossibleMovesKing(x, y, piece);
+                    break;
             }
         }
 
