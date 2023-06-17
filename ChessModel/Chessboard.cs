@@ -3,7 +3,7 @@
     public class Chessboard
     {
         public Dictionary<(int, int), ChessPiece> GameBoard { get; protected set; }
-        public HashSet<ChessPiece> capturedPieces;
+        public HashSet<ChessPiece> CapturedPieces;
 
         private bool whiteInCheck;
         private bool blackInCheck;
@@ -16,7 +16,7 @@
         public Chessboard()
         {
             GameBoard = new();
-            capturedPieces = new();
+            CapturedPieces = new();
             
             whiteInCheck = false;
             blackInCheck = false;
@@ -88,7 +88,7 @@
 
                 if (GameBoard.ContainsKey(newPosition))
                 {
-                    capturedPieces.Add(GameBoard[newPosition]);
+                    CapturedPieces.Add(GameBoard[newPosition]);
                     GameBoard[newPosition] = piece;
                 } else
                 {

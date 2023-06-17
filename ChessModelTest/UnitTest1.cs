@@ -173,6 +173,102 @@ namespace ChessModelsTest
         }
 
         /// <summary>
+        /// Tests pawn's unique diagonal movement for capturing
+        /// </summary>
+        [TestMethod]
+        public void TestPawnCapture()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+            HashSet<ChessPiece> captured = chessBoard.CapturedPieces;
+
+            // White pawn to e4
+            chessBoard.MovePiece((5, 2), (5, 4));
+            // Black pawn to d5
+            chessBoard.MovePiece((4, 7), (4, 5));
+
+            Debug.WriteLine("White pawn captures black pawn and switches to its file.");
+            chessBoard.MovePiece((5, 4), (4, 5));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+            Assert.IsTrue(captured.Count == 1);
+
+            // Black pawn to e6, setting the white pawn up for a chain of captures
+            chessBoard.MovePiece((5, 7), (5, 6));
+
+            // We'll disregard rules for a sec
+            // The model doesn't currently require turn order or implement promotion
+            // We're just here to test pawn capturing
+
+            // Whtie pawn captures black pawn
+            chessBoard.MovePiece((4, 5), (5, 6));
+            Assert.IsTrue(captured.Count == 2);
+            // White pawn captures another pawn
+            chessBoard.MovePiece((5, 6), (6, 7));
+            Assert.IsTrue(captured.Count == 3);
+            
+            // White pawn captures black knight
+            Debug.WriteLine("White pawn has now captured 4 pieces and has reached the end of the board." +
+                "\nNo promotion yet.");
+            chessBoard.MovePiece((6, 7), (7, 8));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+            Assert.IsTrue(captured.Count == 4);
+        }
+
+        /// <summary>
+        /// Tests some other moves' capturing. The above 2 tests together pretty thoroughly show that capturing works as
+        /// intended, but we'll get a bit more testing to be safe.
+        /// </summary>
+        [TestMethod]
+        public void TestOtherPiecesCapture()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+            HashSet<ChessPiece> captured = chessBoard.CapturedPieces;
+
+            // White pawn to e4
+            chessBoard.MovePiece((5, 2), (5, 4));
+            // Black pawn to d5
+            chessBoard.MovePiece((4, 7), (4, 5));
+            // White queen to h5
+            chessBoard.MovePiece((4, 1), (8, 5));
+            // Black bishop to f5
+            chessBoard.MovePiece((3, 8), (6, 5));
+
+            // White queen captures black pawn (outstanding move)
+            chessBoard.MovePiece((8, 5), (8, 7));
+            Assert.IsTrue(captured.Count == 1);
+
+            // Black bishop captures white pawn
+            chessBoard.MovePiece((6, 5), (5, 4));
+            Assert.IsTrue(captured.Count == 2);
+
+            // White queen captures black knight diagonally
+            chessBoard.MovePiece((8, 7), (7, 8));
+            Assert.IsTrue(captured.Count == 3);
+
+            // Black rook finally stops this madman of a queen
+            chessBoard.MovePiece((8, 8), (7, 8));
+            Assert.IsTrue(captured.Count == 4);
+
+            // White knight to c3
+            chessBoard.MovePiece((2, 1), (3, 3));
+
+            // Black bishop captures white pawn
+            chessBoard.MovePiece((5, 4), (3, 2));
+            Assert.IsTrue(captured.Count == 5);
+
+            // White knight captures black pawn
+            chessBoard.MovePiece((3, 3), (4, 5));
+
+            foreach (ChessPiece piece in captured)
+            {
+                Debug.WriteLine(piece.Color + " " + piece.Type);
+            }
+        }
+
+        /// <summary>
         /// Private helper method used for testing which displays all pieces' positions, colors, types, and available moves
         /// </summary>
         private void PrintAllPiecesMoves(Dictionary<(int, int), ChessPiece> board)
