@@ -1,4 +1,4 @@
-﻿namespace ChessModel
+﻿namespace ChessModels
 {
     public class Chessboard
     {

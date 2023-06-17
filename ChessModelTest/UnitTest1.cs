@@ -1,4 +1,4 @@
-using ChessModel;
+using ChessModels;
 using System.Diagnostics;
 
 namespace ChessModelsTest
