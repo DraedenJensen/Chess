@@ -1,4 +1,6 @@
-﻿namespace ChessModels
+﻿using System.Diagnostics;
+
+namespace ChessModels
 {
     public class Chessboard
     {
@@ -62,12 +64,11 @@
                 turn++;
                 foreach (var entry in GameBoard)
                 {
-                    //I'd like to figure out what's wrong with the commented out code -- I don't wanna recalculate every single piece every time
-                    UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
-                    //if (entry.Value.AvailableMoves.Contains(oldPosition) || entry.Value.AvailableMoves.Contains(newPosition))
-                    //{
-                    //    UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
-                    //}
+                    if (entry.Value.AvailableMoves.Contains(oldPosition) || entry.Value.BlockedMoves.Contains(oldPosition) ||
+                        entry.Value.AvailableMoves.Contains(newPosition) || entry.Value.BlockedMoves.Contains(newPosition))
+                    {
+                        UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                    }
                 }
 
                 return true;
@@ -119,26 +120,33 @@
         private void UpdatePossibleMoves(int x, int y, ChessPiece piece)
         {
             //TODO deal with moving into check
+            HashSet<(int, int)> blockedMoves = new();
 
             switch (piece.Type)
             {
                 case "pawn":
-                    piece.AvailableMoves = GetPossibleMovesPawn(x, y, piece);
+                    piece.AvailableMoves = GetPossibleMovesPawn(x, y, piece, out blockedMoves);
+                    piece.BlockedMoves = blockedMoves;
                     break;
                 case "knight":
-                    piece.AvailableMoves = GetPossibleMovesKnight(x, y, piece);
+                    piece.AvailableMoves = GetPossibleMovesKnight(x, y, piece, out blockedMoves);
+                    piece.BlockedMoves = blockedMoves;
                     break;
                 case "bishop":
-                    piece.AvailableMoves = GetPossibleMovesBishop(x, y, piece);
+                    piece.AvailableMoves = GetPossibleMovesBishop(x, y, piece, out blockedMoves);
+                    piece.BlockedMoves = blockedMoves;
                     break;
                 case "rook":
-                    piece.AvailableMoves = GetPossibleMovesRook(x, y, piece);
+                    piece.AvailableMoves = GetPossibleMovesRook(x, y, piece, out blockedMoves);
+                    piece.BlockedMoves = blockedMoves;
                     break;
                 case "queen":
-                    piece.AvailableMoves = GetPossibleMovesQueen(x, y, piece);
+                    piece.AvailableMoves = GetPossibleMovesQueen(x, y, piece, out blockedMoves);
+                    piece.BlockedMoves = blockedMoves;
                     break;
                 case "king":
-                    piece.AvailableMoves = GetPossibleMovesKing(x, y, piece);
+                    piece.AvailableMoves = GetPossibleMovesKing(x, y, piece, out blockedMoves);
+                    piece.BlockedMoves = blockedMoves;
                     break;
             }
         }
@@ -150,11 +158,12 @@
         /// <param name="y">Rank of this piece</param>
         /// <param name="piece">This piece iself</param>
         /// <returns>The updated set of available moves for this piece</returns>
-        private HashSet<(int, int)> GetPossibleMovesPawn(int x, int y, ChessPiece piece)
+        private HashSet<(int, int)> GetPossibleMovesPawn(int x, int y, ChessPiece piece, out HashSet<(int, int)> blockedMoves)
         {
             int color = piece.Color;
 
             HashSet<(int, int)> newMoves = new();
+            blockedMoves = new();
 
             //TODO Check for promotion first
             if ((color == -1 && y == 1) || (color == 1 && y == 8))
@@ -167,6 +176,10 @@
             {
                 newMoves.Add((x, y + color));
             }
+            else
+            {
+                blockedMoves.Add((x, y + color));
+            }
 
             // Check for captures
             for (int i = -1; i < 2; i += 2)
@@ -177,6 +190,14 @@
                     {
                         newMoves.Add((x + i, y + color));
                     }
+                    else
+                    {
+                        blockedMoves.Add((x + i, y + color));
+                    }
+                }
+                else
+                {
+                    blockedMoves.Add((x + i, y + color));
                 }
             }
 
@@ -186,6 +207,9 @@
                 if (!GameBoard.ContainsKey((x, y + color * 2)))
                 {
                     newMoves.Add((x, y + color * 2));
+                } else
+                {
+                    blockedMoves.Add((x, y + color * 2));
                 }
             }
 
@@ -208,9 +232,10 @@
         /// <param name="y">Rank of this piece</param>
         /// <param name="piece">This piece iself</param>
         /// <returns>The updated set of available moves for this piece</returns>
-        private HashSet<(int, int)> GetPossibleMovesKnight(int x, int y, ChessPiece piece)
+        private HashSet<(int, int)> GetPossibleMovesKnight(int x, int y, ChessPiece piece, out HashSet<(int, int)> blockedMoves)
         {
             HashSet<(int, int)> newMoves = new();
+            blockedMoves = new();
 
             // Nested for loop iterates through all 4 combinations of {1, -1} with {2, -2}
             // Inside each loop iteration, we check the 2 possibilities of (x + i, y + j) as well as (x + j, y + i)
@@ -228,6 +253,10 @@
                         {
                             newMoves.Add((x + i, y + j));
                         }
+                        else
+                        {
+                            blockedMoves.Add((x + i, y + j));
+                        }
                     }
 
                     if (x + j < 9 && x + j > 0 && y + i < 9 && y + i > 0)
@@ -239,6 +268,10 @@
                         else if (GameBoard[(x + j, y + i)].Color != piece.Color)
                         {
                             newMoves.Add((x + j, y + i));
+                        }
+                        else
+                        {
+                            blockedMoves.Add((x + j, y + i));
                         }
                     }
 
@@ -255,14 +288,15 @@
         /// <param name="y">Rank of this piece</param>
         /// <param name="piece">This piece iself</param>
         /// <returns>The updated set of available moves for this piece</returns>
-        private HashSet<(int, int)> GetPossibleMovesBishop(int x, int y, ChessPiece piece)
+        private HashSet<(int, int)> GetPossibleMovesBishop(int x, int y, ChessPiece piece, out HashSet<(int, int)> blockedMoves)
         {
             HashSet<(int, int)> newMoves = new();
+            blockedMoves = new();
 
-            BishopHelper(newMoves, x, y, piece, 1, 1);
-            BishopHelper(newMoves, x, y, piece, 1, -1);
-            BishopHelper(newMoves, x, y, piece, -1, 1);
-            BishopHelper(newMoves, x, y, piece, -1, -1);
+            BishopHelper(newMoves, x, y, piece, 1, 1, blockedMoves);
+            BishopHelper(newMoves, x, y, piece, 1, -1, blockedMoves);
+            BishopHelper(newMoves, x, y, piece, -1, 1, blockedMoves);
+            BishopHelper(newMoves, x, y, piece, -1, -1, blockedMoves);
 
             return newMoves;
         }
@@ -274,7 +308,7 @@
         /// </summary>
         /// <param name="xMultiplier">Always either 1 or -1, determines which horizontal direction we're expanding in</param>
         /// <param name="yMultiplier">Always either 1 or -1, determines which vertical direction we're expanding in</param>
-        private void BishopHelper(HashSet<(int, int)> newMoves, int x, int y, ChessPiece piece, int xMultiplier, int yMultiplier)
+        private void BishopHelper(HashSet<(int, int)> newMoves, int x, int y, ChessPiece piece, int xMultiplier, int yMultiplier, HashSet<(int, int)> blockedMoves)
         {
             for (int i = 1; i < 8; i++)
             {
@@ -299,6 +333,7 @@
                     }
                     else
                     {
+                        blockedMoves.Add((xi, yi));
                         break;
                     }
                 }
@@ -312,9 +347,10 @@
         /// <param name="y">Rank of this piece</param>
         /// <param name="piece">This piece iself</param>
         /// <returns>The updated set of available moves for this piece</returns>
-        private HashSet<(int, int)> GetPossibleMovesRook(int x, int y, ChessPiece piece)
+        private HashSet<(int, int)> GetPossibleMovesRook(int x, int y, ChessPiece piece, out HashSet<(int, int)> blockedMoves)
         {
             HashSet<(int, int)> newMoves = new();
+            blockedMoves = new();
 
             // Pretty much the same algorithm as the bishop
             // This time it's split into two separate nested for loops each 2 deep
@@ -335,6 +371,7 @@
                     }
                     else
                     {
+                        blockedMoves.Add((i, y));
                         break;
                     }
                 }
@@ -355,6 +392,7 @@
                     }
                     else
                     {
+                        blockedMoves.Add((x, j));
                         break;
                     } 
                 }
@@ -370,13 +408,18 @@
         /// <param name="y">Rank of this piece</param>
         /// <param name="piece">This piece iself</param>
         /// <returns>The updated set of available moves for this piece</returns>
-        private HashSet<(int, int)> GetPossibleMovesQueen(int x, int y, ChessPiece piece)
+        private HashSet<(int, int)> GetPossibleMovesQueen(int x, int y, ChessPiece piece, out HashSet<(int, int)> blockedMoves)
         {
+            blockedMoves = new();
+            HashSet<(int, int)> blockedStraights = new();
+
             // A queen is just a bishop plus a rook
-            HashSet<(int, int)> diagonalMoves = GetPossibleMovesBishop(x, y, piece);
-            HashSet<(int, int)> straightMoves = GetPossibleMovesRook(x, y, piece);
+            HashSet<(int, int)> diagonalMoves = GetPossibleMovesBishop(x, y, piece, out blockedMoves);
+            HashSet<(int, int)> straightMoves = GetPossibleMovesRook(x, y, piece, out blockedStraights);
 
             diagonalMoves.UnionWith(straightMoves);
+            blockedMoves.UnionWith(blockedStraights);
+
             return diagonalMoves;
         }
 
@@ -387,9 +430,10 @@
         /// <param name="y">Rank of this piece</param>
         /// <param name="piece">This piece iself</param>
         /// <returns>The updated set of available moves for this piece</returns>
-        private HashSet<(int, int)> GetPossibleMovesKing(int x, int y, ChessPiece piece)
+        private HashSet<(int, int)> GetPossibleMovesKing(int x, int y, ChessPiece piece, out HashSet<(int, int)> blockedMoves)
         {
             HashSet<(int, int)> newMoves = new();
+            blockedMoves = new();
 
             for (int i = -1; i < 2; i++)
             {
@@ -402,6 +446,13 @@
                             if (!GameBoard.ContainsKey((x + i, y + j)))
                             {
                                 newMoves.Add((x + i, y + j));
+                            }
+                            else if (GameBoard[(x + i, y + j)].Color != piece.Color)
+                            {
+                                newMoves.Add((x + i, y + j));
+                            } else
+                            {
+                                blockedMoves.Add((x + i, y + j));
                             }
                         }
                     }
