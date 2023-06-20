@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Xml;
 
 namespace ChessModels
 {
@@ -12,6 +13,8 @@ namespace ChessModels
         private bool whiteInCheck;
         private bool blackInCheck;
 
+        private Dictionary<int, (int, int)> enemyKingLocations;
+
         private int turn;
 
         /// <summary>
@@ -21,9 +24,11 @@ namespace ChessModels
         {
             GameBoard = new();
             CapturedPieces = new();
+            enemyKingLocations = new();
             
             whiteInCheck = false;
             blackInCheck = false;
+
             turn = 1;
 
             // Fill back row pieces
@@ -49,9 +54,11 @@ namespace ChessModels
 
             foreach (var entry in GameBoard)
             {
-                entry.Value.BlockingKing = new();
                 UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
             }
+
+            enemyKingLocations.Add(-1, (5, 1));
+            enemyKingLocations.Add(1, (5, 8));
         }
         
         /// <summary>
@@ -64,9 +71,31 @@ namespace ChessModels
         {
             if (UpdateCoordinates(oldPosition, newPosition))
             {
+                if ((GameBoard[newPosition].Type == "king"))
+                {
+                    switch (GameBoard[newPosition].Color)
+                    {
+                        case -1:
+                            enemyKingLocations[1] = newPosition;
+                            break;
+                        case 1:
+                            enemyKingLocations[-1] = newPosition;
+                            break;
+                    }
+                }
                 turn++;
                 foreach (var entry in GameBoard)
                 {
+                    if (entry.Value.Type == "bishop" || entry.Value.Type == "queen")
+                    {
+                        UpdateCheckLinesDiagonal(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                    }
+
+                    if (entry.Value.Type == "rook" || entry.Value.Type == "queen")
+                    {
+                        UpdateCheckLinesStraight(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                    }
+                    
                     if (entry.Value.AvailableMoves.Contains(oldPosition) || entry.Value.BlockedMoves.Contains(oldPosition) ||
                         entry.Value.AvailableMoves.Contains(newPosition) || entry.Value.BlockedMoves.Contains(newPosition))
                     {
@@ -82,6 +111,103 @@ namespace ChessModels
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Private helper method which updates the potential lines of check of a bishop or queen
+        /// </summary>
+        private void UpdateCheckLinesDiagonal(int x, int y, ChessPiece piece)
+        {
+            piece.PotentialLineOfCheck.Item1.Clear();
+            piece.PotentialLineOfCheck.Item2.Clear();
+
+            (int, int) enemyKingLocation = enemyKingLocations[piece.Color];
+
+            int xDistance = enemyKingLocation.Item1 - x;
+            int yDistance = enemyKingLocation.Item2 - y;
+            int xMultiplier = -1;
+            int yMultiplier = -1;
+
+            if (Math.Abs(xDistance) == Math.Abs(yDistance))
+            {
+                if (xDistance > 0)
+                {
+                    xMultiplier = 1;
+                }
+
+                if (yDistance > 0)
+                {
+                    yMultiplier = 1;
+                }
+                for (int i = 1; i < Math.Abs(xDistance); i++)
+                {
+                    int xi = x + xMultiplier * i;
+                    int yi = y + yMultiplier * i;
+
+                    piece.PotentialLineOfCheck.Item2.Add((xi, yi));
+                    if (GameBoard.ContainsKey((xi, yi)))
+                    {
+                        piece.PotentialLineOfCheck.Item1.Add((xi, yi));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Private helper method which updates the potential lines of check of a rook or queen
+        /// </summary>
+        public void UpdateCheckLinesStraight(int x, int y, ChessPiece piece)
+        {
+            if (piece.Type == "queen" && piece.PotentialLineOfCheck.Item2.Count() > 0)
+            {
+                return;
+            }
+
+            piece.PotentialLineOfCheck.Item1.Clear();
+            piece.PotentialLineOfCheck.Item2.Clear();
+
+            (int, int) enemyKingLocation = enemyKingLocations[piece.Color];
+
+            if (x == enemyKingLocation.Item1)
+            {
+                int start = y;
+                int end = enemyKingLocation.Item2;
+
+                if (y > enemyKingLocation.Item2)
+                {
+                    start = enemyKingLocation.Item2;
+                    end = y;
+                }
+
+                for (int i = start + 1; i < end; i++)
+                {
+                    piece.PotentialLineOfCheck.Item2.Add((x, i));
+                    if (GameBoard.ContainsKey((x, i)))
+                    {
+                        piece.PotentialLineOfCheck.Item1.Add((x, i));
+                    }
+                }
+            } 
+            else if (y == enemyKingLocation.Item2)
+            {
+                int start = x;
+                int end = enemyKingLocation.Item1;
+
+                if (x > enemyKingLocation.Item1)
+                {
+                    start = enemyKingLocation.Item1;
+                    end = x;
+                }
+
+                for (int i = start + 1; i < end; i++)
+                {
+                    piece.PotentialLineOfCheck.Item2.Add((i, y));
+                    if (GameBoard.ContainsKey((i, y)))
+                    {
+                        piece.PotentialLineOfCheck.Item1.Add((i, y));
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -295,7 +421,6 @@ namespace ChessModels
         {
             HashSet<(int, int)> newMoves = new();
             blockedMoves = new();
-            piece.BlockingKing.Clear();
 
             BishopHelper(newMoves, x, y, piece, 1, 1, blockedMoves);
             BishopHelper(newMoves, x, y, piece, 1, -1, blockedMoves);
@@ -314,55 +439,34 @@ namespace ChessModels
         /// <param name="yMultiplier">Always either 1 or -1, determines which vertical direction we're expanding in</param>
         private void BishopHelper(HashSet<(int, int)> newMoves, int x, int y, ChessPiece piece, int xMultiplier, int yMultiplier, HashSet<(int, int)> blockedMoves)
         {
-            (int, int) potentiallyBlockingCheck = (0, 0);
-            HashSet<(int, int)> potentialLineOfCheck = new();
-
             for (int i = 1; i < 8; i++)
             {
                 int xi = x + xMultiplier * i;
                 int yi = y + yMultiplier * i;
-
                 
                 if (xi > 0 && xi < 9 && yi > 0 && yi < 9)
                 {
-                    if (potentiallyBlockingCheck == (0, 0))
-                    {
-                        // Now we're inside the innermost for loop, so we've reached one individual square to be assessed
+                    // Now we're inside the innermost for loop, so we've reached one individual square to be assessed
 
-                        // If a square is empty, the bishop can move there
-                        // If a square has an enemy piece, the bishop can move there, but can't continue any further on the diagonal
-                        // If a square has a friendly piece, the bishop can't move there or continue any further on the diagonal
-                        if (!GameBoard.ContainsKey((xi, yi)))
-                        {
-                            newMoves.Add((xi, yi));
-                            potentialLineOfCheck.Add((xi, yi));
-                        }
-                        else if (GameBoard[(xi, yi)].Color != piece.Color)
-                        {
-                            newMoves.Add((xi, yi));
-                            potentialLineOfCheck.Add((xi, yi));
-                            potentiallyBlockingCheck = (xi, yi);
-                        }
-                        else
-                        {
-                            blockedMoves.Add((xi, yi));
-                            break;
-                        }
-                    } else
+                    // If a square is empty, the bishop can move there
+                    // If a square has an enemy piece, the bishop can move there, but can't continue any further on the diagonal
+                    // If a square has a friendly piece, the bishop can't move there or continue any further on the diagonal
+                    if (!GameBoard.ContainsKey((xi, yi)))
                     {
-                        if (GameBoard.ContainsKey((xi, yi)))
-                        {
-                            if (GameBoard[(xi, yi)].Type == "king" && GameBoard[(xi, yi)].Color != piece.Color)
-                            {
-                                piece.BlockingKing.Add(potentiallyBlockingCheck, potentialLineOfCheck);
-                            }
-                            break;
-                        } else
-                        {
-                            potentialLineOfCheck.Add((xi, yi));
-                        }
+                        newMoves.Add((xi, yi));
                     }
-                } else
+                    else if (GameBoard[(xi, yi)].Color != piece.Color)
+                    {
+                        newMoves.Add((xi, yi));
+                        break;
+                    }
+                    else
+                    {
+                        blockedMoves.Add((xi, yi));
+                        break;
+                    }
+                } 
+                else
                 {
                     break;
                 }
@@ -381,57 +485,28 @@ namespace ChessModels
             HashSet<(int, int)> newMoves = new();
             blockedMoves = new();
 
-            // This method is called by queens; we don't want to clear a line of check that was already set by the bishop method
-            if (piece.Type == "rook")
-            {
-                piece.BlockingKing.Clear();
-            }
-
             // Pretty much the same algorithm as the bishop
             // This time it's split into two separate nested for loops each 2 deep
             // That way we check the 4 cardinal directions rather than 4 diagonal
             for (int g = -1; g < 2; g += 2)
             {
-                (int, int) potentiallyBlockingCheck = (0, 0);
-                HashSet<(int, int)> potentialLineOfCheck = new();
-
                 for (int i = x + g; i < 9 && i > 0; i += g)
                 {
                     if (i > 0 && i < 9)
                     {
-                        if (potentiallyBlockingCheck == (0, 0))
+                        if (!GameBoard.ContainsKey((i, y)))
                         {
-                            if (!GameBoard.ContainsKey((i, y)))
-                            {
-                                newMoves.Add((i, y));
-                                potentialLineOfCheck.Add((i, y));
-                            }
-                            else if (GameBoard[(i, y)].Color != piece.Color)
-                            {
-                                newMoves.Add((i, y));
-                                potentialLineOfCheck.Add((i, y));
-                                potentiallyBlockingCheck = (i, y);
-                            }
-                            else
-                            {
-                                blockedMoves.Add((i, y));
-                                break;
-                            }
+                            newMoves.Add((i, y));
+                        }
+                        else if (GameBoard[(i, y)].Color != piece.Color)
+                        {
+                            newMoves.Add((i, y));
+                            break;
                         }
                         else
                         {
-                            if (GameBoard.ContainsKey((i, y)))
-                            {
-                                if (GameBoard[(i, y)].Type == "king" && GameBoard[(i, y)].Color != piece.Color)
-                                {
-                                    piece.BlockingKing.Add(potentiallyBlockingCheck, potentialLineOfCheck);
-                                }
-                                break;
-                            }
-                            else
-                            {
-                                potentialLineOfCheck.Add((i, y));
-                            }
+                            blockedMoves.Add((i, y));
+                            break;
                         }
                     } 
                     else
@@ -443,46 +518,23 @@ namespace ChessModels
 
             for (int h = -1; h < 2; h += 2)
             {
-                (int, int) potentiallyBlockingCheck = (0, 0);
-                HashSet<(int, int)> potentialLineOfCheck = new();
-
                 for (int j = y + h; j < 9 && j > 0; j += h)
                 {
                     if (j > 0 && j < 9)
                     {
-                        if (potentiallyBlockingCheck == (0, 0))
+                        if (!GameBoard.ContainsKey((x, j)))
                         {
-                            if (!GameBoard.ContainsKey((x, j)))
-                            {
-                                newMoves.Add((x, j));
-                                potentialLineOfCheck.Add((x, j));
-                            }
-                            else if (GameBoard[(x, j)].Color != piece.Color)
-                            {
-                                newMoves.Add((x, j));
-                                potentialLineOfCheck.Add((x, j));
-                                potentiallyBlockingCheck = (x, j);
-                            }
-                            else
-                            {
-                                blockedMoves.Add((x, j));
-                                break;
-                            }
-                        } 
+                            newMoves.Add((x, j));
+                        }
+                        else if (GameBoard[(x, j)].Color != piece.Color)
+                        {
+                            newMoves.Add((x, j));
+                            break;
+                        }
                         else
                         {
-                            if (GameBoard.ContainsKey((x, j)))
-                            {
-                                if (GameBoard[(x, j)].Type == "king" && GameBoard[(x, j)].Color != piece.Color)
-                                {
-                                    piece.BlockingKing.Add(potentiallyBlockingCheck, potentialLineOfCheck);
-                                }
-                                break;
-                            }
-                            else
-                            {
-                                potentialLineOfCheck.Add((x, j));
-                            }
+                            blockedMoves.Add((x, j));
+                            break;
                         }
                     } 
                     else

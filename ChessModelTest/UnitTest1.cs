@@ -269,6 +269,262 @@ namespace ChessModelsTest
         }
 
         /// <summary>
+        /// Every bishop, queen, and rook now keeps track of any row or diagonal in which at least 1 piece is all
+        /// that separates them from the enemy king. This test ensures that this component is working properly. 
+        /// </summary>
+        [TestMethod]
+        public void TestPotentialLinesOfCheck()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            chessBoard.MovePiece((5, 2), (5, 4));
+            foreach (ChessPiece piece in board.Values)
+            {
+                Assert.IsTrue(piece.PotentialLineOfCheck.Item1.Count == 0);
+            }
+
+            // Black pawn to e5
+            chessBoard.MovePiece((5, 7), (5, 5));
+            foreach (ChessPiece piece in board.Values)
+            {
+                Assert.IsTrue(piece.PotentialLineOfCheck.Item1.Count == 0);
+            }
+
+            // White bishop to b5
+            // The bishop now has a single piece in the way of check
+            chessBoard.MovePiece((6, 1), (2, 5));
+            foreach (var entry in board)
+            {
+                if (entry.Key == (2, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 1);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((4, 7)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((3, 6)));
+                    Assert.IsTrue(line.Contains((4, 7)));
+                }
+                else
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 0);
+                }
+            }
+
+            // Black pawn to c6
+            // There are now 2 pieces in bishop's potential line of check
+            chessBoard.MovePiece((3, 7), (3, 6));
+            foreach (var entry in board)
+            {
+                if (entry.Key == (2, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 2);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((4, 7)));
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((3, 6)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((3, 6)));
+                    Assert.IsTrue(line.Contains((4, 7)));
+                }
+                else
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 0);
+                }
+            }
+
+            // White queen to h5
+            // The queen should now have a potential check line
+            chessBoard.MovePiece((4, 1), (8, 5));
+            foreach (var entry in board)
+            {
+                if (entry.Key == (2, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 2);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((4, 7)));
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((3, 6)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((3, 6)));
+                    Assert.IsTrue(line.Contains((4, 7)));
+                }
+                else if (entry.Key == (8, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 1);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((6, 7)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((7, 6)));
+                    Assert.IsTrue(line.Contains((6, 7)));
+                }
+                else
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 0);
+                }
+            }
+
+            // Black pawn to d5
+            // One of the pawns is now out of the bishop's way, so the bishop as well as queen are each separated by a single piece
+            chessBoard.MovePiece((4, 7), (4, 5));
+            foreach (var entry in board)
+            {
+                if (entry.Key == (2, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 1);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((3, 6)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((3, 6)));
+                    Assert.IsTrue(line.Contains((4, 7)));
+                }
+                else if (entry.Key == (8, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 1);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((6, 7)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((7, 6)));
+                    Assert.IsTrue(line.Contains((6, 7)));
+                }
+                else
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 0);
+                }
+            }
+
+            // White knight to f3, nothing changes
+            chessBoard.MovePiece((7, 1), (6, 3));
+
+            // Black queen to e7
+            // The black queen now has a check line
+            chessBoard.MovePiece((4, 8), (5, 7));
+            foreach (var entry in board)
+            {
+                if (entry.Key == (2, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 1);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((3, 6)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((3, 6)));
+                    Assert.IsTrue(line.Contains((4, 7)));
+                }
+                else if (entry.Key == (8, 5))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 1);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((6, 7)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 2);
+                    Assert.IsTrue(line.Contains((7, 6)));
+                    Assert.IsTrue(line.Contains((6, 7)));
+                }
+                else if (entry.Key == (5, 7))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 2);
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((5, 4)));
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Contains((5, 5)));
+
+                    HashSet<(int, int)> line = entry.Value.PotentialLineOfCheck.Item2;
+                    Assert.IsTrue(line.Count == 5);
+                    Assert.IsTrue(line.Contains((5, 2)));
+                    Assert.IsTrue(line.Contains((5, 3)));
+                    Assert.IsTrue(line.Contains((5, 4)));
+                    Assert.IsTrue(line.Contains((5, 5)));
+                    Assert.IsTrue(line.Contains((5, 6)));
+                }
+                else
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 0);
+                }
+            }
+
+            // White pawn to d5
+            // Only 1 piece in the black queen's way
+            chessBoard.MovePiece((5, 4), (4, 5));
+            ChessPiece queen = board[(5, 7)];
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item1.Count == 1);
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item1.Contains((5, 5)));
+
+            HashSet<(int, int)> queenLine = queen.PotentialLineOfCheck.Item2;
+            Assert.IsTrue(queenLine.Count == 5);
+            Assert.IsTrue(queenLine.Contains((5, 2)));
+            Assert.IsTrue(queenLine.Contains((5, 3)));
+            Assert.IsTrue(queenLine.Contains((5, 4)));
+            Assert.IsTrue(queenLine.Contains((5, 5)));
+            Assert.IsTrue(queenLine.Contains((5, 6)));
+
+            // Black king to d8
+            // He got out of both the bishop and the queen's line of attack
+            chessBoard.MovePiece((5, 8), (4, 8));
+            foreach (var entry in board)
+            {
+                if (entry.Key != (5, 7))
+                {
+                    Assert.IsTrue(entry.Value.PotentialLineOfCheck.Item1.Count == 0);
+                }
+            }
+
+            // White queen to h4
+            // She's back in the king's line of sight
+            chessBoard.MovePiece((8, 5), (8, 4));
+            queen = board[(8, 4)];
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item1.Count == 1);
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item1.Contains((5, 7)));
+
+            queenLine = queen.PotentialLineOfCheck.Item2;
+            Assert.IsTrue(queenLine.Count == 3);
+            Assert.IsTrue(queenLine.Contains((7, 5)));
+            Assert.IsTrue(queenLine.Contains((6, 6)));
+            Assert.IsTrue(queenLine.Contains((5, 7)));
+
+            // Black pawn to a5, this changes nothing
+            chessBoard.MovePiece((1, 7), (1, 5));
+
+            // White knight to g5
+            // Knight in its own queen's way
+            chessBoard.MovePiece((6, 3), (7, 5));
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item1.Count == 2);
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item1.Contains((7, 5)));
+
+            // Black queen to e6
+            // Her line of sight hasn't changed except being 1 square smaller
+            chessBoard.MovePiece((5, 7), (5, 6));
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item1.Count == 1);
+            queen = board[(5, 6)];
+            Assert.IsTrue(queen.PotentialLineOfCheck.Item2.Count == 4);
+
+            // White king to e2, nothing much changes
+            chessBoard.MovePiece((5, 1), (5, 2));
+            // Black pawn to a4, nothing changes
+            chessBoard.MovePiece((1, 5), (1, 4));
+
+            // White rook to d1
+            // Now the rook has a long line of sight
+            chessBoard.MovePiece((8, 1), (4, 1));
+            ChessPiece rook = board[(4, 1)];
+            Assert.IsTrue(rook.PotentialLineOfCheck.Item1.Count == 2);
+            Assert.IsTrue(rook.PotentialLineOfCheck.Item1.Contains((4, 2)));
+            Assert.IsTrue(rook.PotentialLineOfCheck.Item1.Contains((4, 5)));
+
+            HashSet<(int, int)> rookLine = rook.PotentialLineOfCheck.Item2;
+            Assert.IsTrue(rookLine.Count == 6);
+            Assert.IsTrue(rookLine.Contains((4, 2)));
+            Assert.IsTrue(rookLine.Contains((4, 3)));
+            Assert.IsTrue(rookLine.Contains((4, 4)));
+            Assert.IsTrue(rookLine.Contains((4, 5)));
+            Assert.IsTrue(rookLine.Contains((4, 6)));
+            Assert.IsTrue(rookLine.Contains((4, 7)));
+        }
+
+        /// <summary>
         /// Private helper method used for testing which displays all pieces' positions, colors, types, and available moves
         /// </summary>
         private void PrintAllPiecesMoves(Dictionary<(int, int), ChessPiece> board)
