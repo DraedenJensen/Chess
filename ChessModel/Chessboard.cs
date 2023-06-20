@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace ChessModels
 {
@@ -47,6 +49,7 @@ namespace ChessModels
 
             foreach (var entry in GameBoard)
             {
+                entry.Value.BlockingKing = new();
                 UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
             }
         }
@@ -292,6 +295,7 @@ namespace ChessModels
         {
             HashSet<(int, int)> newMoves = new();
             blockedMoves = new();
+            piece.BlockingKing.Clear();
 
             BishopHelper(newMoves, x, y, piece, 1, 1, blockedMoves);
             BishopHelper(newMoves, x, y, piece, 1, -1, blockedMoves);
@@ -310,32 +314,57 @@ namespace ChessModels
         /// <param name="yMultiplier">Always either 1 or -1, determines which vertical direction we're expanding in</param>
         private void BishopHelper(HashSet<(int, int)> newMoves, int x, int y, ChessPiece piece, int xMultiplier, int yMultiplier, HashSet<(int, int)> blockedMoves)
         {
+            (int, int) potentiallyBlockingCheck = (0, 0);
+            HashSet<(int, int)> potentialLineOfCheck = new();
+
             for (int i = 1; i < 8; i++)
             {
                 int xi = x + xMultiplier * i;
                 int yi = y + yMultiplier * i;
 
+                
                 if (xi > 0 && xi < 9 && yi > 0 && yi < 9)
                 {
-                    // Now we're inside the innermost for loop, so we've reached one individual square to be assessed
-                    
-                    // If a square is empty, the bishop can move there
-                    // If a square has an enemy piece, the bishop can move there, but can't continue any further on the diagonal
-                    // If a square has a friendly piece, the bishop can't move there or continue any further on the diagonal
-                    if (!GameBoard.ContainsKey((xi, yi)))
+                    if (potentiallyBlockingCheck == (0, 0))
                     {
-                        newMoves.Add((xi, yi));
-                    }
-                    else if (GameBoard[(xi, yi)].Color != piece.Color)
+                        // Now we're inside the innermost for loop, so we've reached one individual square to be assessed
+
+                        // If a square is empty, the bishop can move there
+                        // If a square has an enemy piece, the bishop can move there, but can't continue any further on the diagonal
+                        // If a square has a friendly piece, the bishop can't move there or continue any further on the diagonal
+                        if (!GameBoard.ContainsKey((xi, yi)))
+                        {
+                            newMoves.Add((xi, yi));
+                            potentialLineOfCheck.Add((xi, yi));
+                        }
+                        else if (GameBoard[(xi, yi)].Color != piece.Color)
+                        {
+                            newMoves.Add((xi, yi));
+                            potentialLineOfCheck.Add((xi, yi));
+                            potentiallyBlockingCheck = (xi, yi);
+                        }
+                        else
+                        {
+                            blockedMoves.Add((xi, yi));
+                            break;
+                        }
+                    } else
                     {
-                        newMoves.Add((xi, yi));
-                        break;
+                        if (GameBoard.ContainsKey((xi, yi)))
+                        {
+                            if (GameBoard[(xi, yi)].Type == "king" && GameBoard[(xi, yi)].Color != piece.Color)
+                            {
+                                piece.BlockingKing.Add(potentiallyBlockingCheck, potentialLineOfCheck);
+                            }
+                            break;
+                        } else
+                        {
+                            potentialLineOfCheck.Add((xi, yi));
+                        }
                     }
-                    else
-                    {
-                        blockedMoves.Add((xi, yi));
-                        break;
-                    }
+                } else
+                {
+                    break;
                 }
             }
         }
@@ -352,26 +381,61 @@ namespace ChessModels
             HashSet<(int, int)> newMoves = new();
             blockedMoves = new();
 
+            // This method is called by queens; we don't want to clear a line of check that was already set by the bishop method
+            if (piece.Type == "rook")
+            {
+                piece.BlockingKing.Clear();
+            }
+
             // Pretty much the same algorithm as the bishop
             // This time it's split into two separate nested for loops each 2 deep
             // That way we check the 4 cardinal directions rather than 4 diagonal
-
             for (int g = -1; g < 2; g += 2)
             {
+                (int, int) potentiallyBlockingCheck = (0, 0);
+                HashSet<(int, int)> potentialLineOfCheck = new();
+
                 for (int i = x + g; i < 9 && i > 0; i += g)
                 {
-                    if (!GameBoard.ContainsKey((i, y)))
+                    if (i > 0 && i < 9)
                     {
-                        newMoves.Add((i, y));
-                    }
-                    else if (GameBoard[(i, y)].Color != piece.Color)
-                    {
-                        newMoves.Add((i, y));
-                        break;
-                    }
+                        if (potentiallyBlockingCheck == (0, 0))
+                        {
+                            if (!GameBoard.ContainsKey((i, y)))
+                            {
+                                newMoves.Add((i, y));
+                                potentialLineOfCheck.Add((i, y));
+                            }
+                            else if (GameBoard[(i, y)].Color != piece.Color)
+                            {
+                                newMoves.Add((i, y));
+                                potentialLineOfCheck.Add((i, y));
+                                potentiallyBlockingCheck = (i, y);
+                            }
+                            else
+                            {
+                                blockedMoves.Add((i, y));
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if (GameBoard.ContainsKey((i, y)))
+                            {
+                                if (GameBoard[(i, y)].Type == "king" && GameBoard[(i, y)].Color != piece.Color)
+                                {
+                                    piece.BlockingKing.Add(potentiallyBlockingCheck, potentialLineOfCheck);
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                potentialLineOfCheck.Add((i, y));
+                            }
+                        }
+                    } 
                     else
                     {
-                        blockedMoves.Add((i, y));
                         break;
                     }
                 }
@@ -379,22 +443,52 @@ namespace ChessModels
 
             for (int h = -1; h < 2; h += 2)
             {
+                (int, int) potentiallyBlockingCheck = (0, 0);
+                HashSet<(int, int)> potentialLineOfCheck = new();
+
                 for (int j = y + h; j < 9 && j > 0; j += h)
                 {
-                    if (!GameBoard.ContainsKey((x, j)))
+                    if (j > 0 && j < 9)
                     {
-                        newMoves.Add((x, j));
-                    }
-                    else if (GameBoard[(x, j)].Color != piece.Color)
-                    {
-                        newMoves.Add((x, j));
-                        break;
-                    }
+                        if (potentiallyBlockingCheck == (0, 0))
+                        {
+                            if (!GameBoard.ContainsKey((x, j)))
+                            {
+                                newMoves.Add((x, j));
+                                potentialLineOfCheck.Add((x, j));
+                            }
+                            else if (GameBoard[(x, j)].Color != piece.Color)
+                            {
+                                newMoves.Add((x, j));
+                                potentialLineOfCheck.Add((x, j));
+                                potentiallyBlockingCheck = (x, j);
+                            }
+                            else
+                            {
+                                blockedMoves.Add((x, j));
+                                break;
+                            }
+                        } 
+                        else
+                        {
+                            if (GameBoard.ContainsKey((x, j)))
+                            {
+                                if (GameBoard[(x, j)].Type == "king" && GameBoard[(x, j)].Color != piece.Color)
+                                {
+                                    piece.BlockingKing.Add(potentiallyBlockingCheck, potentialLineOfCheck);
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                potentialLineOfCheck.Add((x, j));
+                            }
+                        }
+                    } 
                     else
                     {
-                        blockedMoves.Add((x, j));
                         break;
-                    } 
+                    }
                 }
             }
 
@@ -462,6 +556,23 @@ namespace ChessModels
             // TODO check for castling
 
             return newMoves;
+        }
+
+        private void RemoveMovingIntoCheck(int x, int y, ChessPiece piece, HashSet<(int, int)> newMoves)
+        {
+            foreach ((int, int) move in newMoves)
+            {
+                foreach (ChessPiece attacker in GameBoard.Values)
+                {
+                    if (attacker.Type == "bishop" && attacker.Color != piece.Color)
+                    {
+                        if (attacker.BlockedMoves.Contains(move))
+                        {
+
+                        }
+                    }
+                }
+            } 
         }
 
         private void CheckForCheck()

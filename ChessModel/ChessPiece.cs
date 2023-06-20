@@ -15,6 +15,8 @@
         // List of moves a piece would be able to move to, but are blocked by a piece they can't capture
         public HashSet<(int, int)> BlockedMoves { get; set; }
 
+        public Dictionary<(int, int), HashSet<(int, int)>> BlockingKing { get; set; }
+
         /// <summary>
         /// Creates a new instance of the ChessPiece class, given defining parameters
         /// </summary>
