@@ -89,17 +89,33 @@ namespace ChessModels
                     if (entry.Value.Type == "bishop" || entry.Value.Type == "queen")
                     {
                         UpdateCheckLinesDiagonal(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                        foreach ((int, int) piece in entry.Value.PotentialLineOfCheck.Item1)
+                        {
+                            UpdatePossibleMoves(piece.Item1, piece.Item2, GameBoard[(piece.Item1, piece.Item2)]);
+                        }
                     }
 
                     if (entry.Value.Type == "rook" || entry.Value.Type == "queen")
                     {
                         UpdateCheckLinesStraight(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                        foreach ((int, int) piece in entry.Value.PotentialLineOfCheck.Item1)
+                        {
+                            UpdatePossibleMoves(piece.Item1, piece.Item2, GameBoard[(piece.Item1, piece.Item2)]);
+                        }
                     }
                     
                     if (entry.Value.AvailableMoves.Contains(oldPosition) || entry.Value.BlockedMoves.Contains(oldPosition) ||
                         entry.Value.AvailableMoves.Contains(newPosition) || entry.Value.BlockedMoves.Contains(newPosition))
                     {
                         UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
+                    }
+                }
+
+                foreach (var entry in GameBoard)
+                {
+                    foreach ((int, int) move in entry.Value.AvailableMoves)
+                    {
+                        GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move);
                     }
                 }
 
@@ -222,7 +238,16 @@ namespace ChessModels
         /// </returns>
         private bool UpdateCoordinates((int, int) oldPosition, (int, int) newPosition)
         {
-            ChessPiece piece = GameBoard[oldPosition];
+            ChessPiece piece;
+
+            try
+            {
+                piece = GameBoard[oldPosition];
+            }
+            catch (KeyNotFoundException)
+            {
+                return false;
+            }
 
             if (piece.AvailableMoves.Contains(newPosition))
             {
@@ -248,36 +273,51 @@ namespace ChessModels
         /// </summary>
         private void UpdatePossibleMoves(int x, int y, ChessPiece piece)
         {
-            //TODO deal with moving into check
+            HashSet<(int, int)> availableMoves = new();
             HashSet<(int, int)> blockedMoves = new();
 
             switch (piece.Type)
             {
                 case "pawn":
-                    piece.AvailableMoves = GetPossibleMovesPawn(x, y, piece, out blockedMoves);
-                    piece.BlockedMoves = blockedMoves;
+                    availableMoves = GetPossibleMovesPawn(x, y, piece, out blockedMoves);
                     break;
                 case "knight":
-                    piece.AvailableMoves = GetPossibleMovesKnight(x, y, piece, out blockedMoves);
-                    piece.BlockedMoves = blockedMoves;
+                    availableMoves = GetPossibleMovesKnight(x, y, piece, out blockedMoves);
                     break;
                 case "bishop":
-                    piece.AvailableMoves = GetPossibleMovesBishop(x, y, piece, out blockedMoves);
-                    piece.BlockedMoves = blockedMoves;
+                    availableMoves = GetPossibleMovesBishop(x, y, piece, out blockedMoves);
                     break;
                 case "rook":
-                    piece.AvailableMoves = GetPossibleMovesRook(x, y, piece, out blockedMoves);
-                    piece.BlockedMoves = blockedMoves;
+                    availableMoves = GetPossibleMovesRook(x, y, piece, out blockedMoves);
                     break;
                 case "queen":
-                    piece.AvailableMoves = GetPossibleMovesQueen(x, y, piece, out blockedMoves);
-                    piece.BlockedMoves = blockedMoves;
+                    availableMoves = GetPossibleMovesQueen(x, y, piece, out blockedMoves);
                     break;
                 case "king":
-                    piece.AvailableMoves = GetPossibleMovesKing(x, y, piece, out blockedMoves);
-                    piece.BlockedMoves = blockedMoves;
+                    availableMoves = GetPossibleMovesKing(x, y, piece, out blockedMoves);
                     break;
             }
+
+            // Stop from moving into check
+            foreach (var entry in GameBoard)
+            {
+                if (entry.Value.Color != piece.Color && entry.Value.PotentialLineOfCheck.Item1.Count == 1 && entry.Value.PotentialLineOfCheck.Item1.Contains((x, y)))
+                {
+                    foreach ((int, int) move in availableMoves)
+                    {
+                        if (!(entry.Value.PotentialLineOfCheck.Item2.Contains(move)))
+                        {
+                            if (move != entry.Key)
+                            {
+                                availableMoves.Remove(move);
+                            }
+                        }
+                    }
+                }
+            }
+
+            piece.AvailableMoves = availableMoves;
+            piece.BlockedMoves = blockedMoves;
         }
 
         /// <summary>

@@ -525,6 +525,111 @@ namespace ChessModelsTest
         }
 
         /// <summary>
+        /// Tests that invalid moves return false and don't change the board
+        /// </summary>
+        [TestMethod]
+        public void TestInvalidMoves()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // Moving from a square not on board
+            Assert.IsFalse(chessBoard.MovePiece((-2, 1), (4, 2)));
+            // Moving from a square with no piece
+            Assert.IsFalse(chessBoard.MovePiece((4, 4), (4, 5)));
+            // Move not allowed for a piece
+            Assert.IsFalse(chessBoard.MovePiece((4, 2), (3, 3)));
+            Assert.IsFalse(chessBoard.MovePiece((5, 1), (5, 2)));
+            Assert.IsFalse(chessBoard.MovePiece((8, 1), (8, 4)));
+            // Moving to a square not on board
+            Assert.IsFalse(chessBoard.MovePiece((1, 1), (0, 1)));
+        }
+
+        /// <summary>
+        /// Tests that a non-king piece will not be allowed to move into check 
+        /// </summary>
+        [TestMethod]
+        public void TestMovingNonKingIntoCheck()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            chessBoard.MovePiece((5, 2), (5, 4));
+            // Black pawn to e5
+            chessBoard.MovePiece((5, 7), (5, 5));
+
+            // White bishop to b5
+            // Now the black pawn can't move
+            chessBoard.MovePiece((6, 1), (2, 5));
+            Assert.IsTrue(board[(4, 7)].AvailableMoves.Count == 0);
+            Assert.IsFalse(chessBoard.MovePiece((4, 7), (4, 6)));
+
+            // Black pawn to c6
+            // Now the pawn can move again
+            chessBoard.MovePiece((3, 7), (3, 6));
+            Assert.IsTrue(board[(4, 7)].AvailableMoves.Count == 2);
+            Assert.IsTrue(board[(3, 6)].AvailableMoves.Count == 2);
+
+            // White queen to h5
+            // Now the pawn on the other side of the king is blocked
+            chessBoard.MovePiece((4, 1), (8, 5));
+            Assert.IsTrue(board[(6, 7)].AvailableMoves.Count == 0);
+            Assert.IsFalse(chessBoard.MovePiece((6, 7), (6, 5)));
+
+            // Black queen to e7
+            chessBoard.MovePiece((4, 8), (5, 7));
+
+            // White queen to e5
+            // Black queen can't move away from this file, but she still has 2 options, including killing the queen
+            chessBoard.MovePiece((8, 5), (5, 5));
+            Assert.IsTrue(board[(5, 7)].AvailableMoves.Count == 2);
+            Assert.IsTrue(board[(5, 7)].AvailableMoves.Contains((5, 5)));
+            Assert.IsTrue(board[(5, 7)].AvailableMoves.Contains((5, 5)));
+
+            // Black queen to e5
+            // She kills the other queen so now she has plenty of options
+            chessBoard.MovePiece((5, 7), (5, 5));
+            Assert.IsTrue(board[(5, 5)].AvailableMoves.Count == 18);
+
+            // White bishop to c6
+            // Pawn's only move is to kill the bishop
+            chessBoard.MovePiece((2, 5), (3, 6));
+            Assert.IsTrue(board[(4, 7)].AvailableMoves.Count == 1);
+            
+            // Pawn then takes that move
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (3, 6)));
+            Assert.IsTrue(board[(3, 6)].AvailableMoves.Count == 1);
+        }
+
+        /// <summary>
+        /// Tests that a king will not be allowed to move into check
+        /// </summary>
+        [TestMethod]
+        public void TestMovingKingIntoCheck()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            chessBoard.MovePiece((5, 2), (5, 4));
+            // Black pawn to d5
+            chessBoard.MovePiece((4, 7), (4, 5));
+            // White pawn to b4
+            chessBoard.MovePiece((2, 2), (2, 4));
+
+            // Black bishop to g4
+            // The king can't move forward without moving into check
+            chessBoard.MovePiece((3, 8), (7, 4));
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 0);
+
+            // White pawn to d3
+            // This opens a move for a king
+            chessBoard.MovePiece((4, 2), (4, 3));
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 1);
+        }
+
+        /// <summary>
         /// Private helper method used for testing which displays all pieces' positions, colors, types, and available moves
         /// </summary>
         private void PrintAllPiecesMoves(Dictionary<(int, int), ChessPiece> board)
