@@ -10,8 +10,10 @@ namespace ChessModels
         public Dictionary<(int, int), ChessPiece> GameBoard { get; protected set; }
         public HashSet<ChessPiece> CapturedPieces { get; protected set; }
 
-        private bool whiteInCheck;
-        private bool blackInCheck;
+        private int inCheck;
+        // Empty until a king is in check, then the piece attacking the king is put in here
+        // Rare cases exist where multiple pieces are attacking the king's current position, which is why this is a HashSet
+        private List<(int, int)> attacker;
 
         private Dictionary<int, (int, int)> enemyKingLocations;
 
@@ -24,10 +26,13 @@ namespace ChessModels
         {
             GameBoard = new();
             CapturedPieces = new();
-            enemyKingLocations = new();
             
-            whiteInCheck = false;
-            blackInCheck = false;
+            enemyKingLocations = new();
+            enemyKingLocations.Add(-1, (5, 1));
+            enemyKingLocations.Add(1, (5, 8));
+
+            inCheck = 0;
+            attacker = new();
 
             turn = 1;
 
@@ -56,9 +61,6 @@ namespace ChessModels
             {
                 UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
             }
-
-            enemyKingLocations.Add(-1, (5, 1));
-            enemyKingLocations.Add(1, (5, 8));
         }
         
         /// <summary>
@@ -69,6 +71,9 @@ namespace ChessModels
         /// <returns>True if the move was successful, false otherwise</returns>
         public bool MovePiece((int, int) oldPosition, (int, int) newPosition)
         {
+            inCheck = 0;
+            attacker.Clear();
+
             if (UpdateCoordinates(oldPosition, newPosition))
             {
                 if ((GameBoard[newPosition].Type == "king"))
@@ -84,6 +89,7 @@ namespace ChessModels
                     }
                 }
                 turn++;
+
                 foreach (var entry in GameBoard)
                 {
                     if (entry.Value.Type == "bishop" || entry.Value.Type == "queen")
@@ -115,9 +121,15 @@ namespace ChessModels
                 {
                     foreach ((int, int) move in entry.Value.AvailableMoves)
                     {
-                        GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move);
+                        try
+                        {
+                            GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move);
+                        }
+                        catch (KeyNotFoundException) { }
                     }
                 }
+
+                CheckForCheck();
 
                 return true;
 
@@ -313,6 +325,20 @@ namespace ChessModels
                             }
                         }
                     }
+                }
+            }
+
+            if (availableMoves.Contains(enemyKingLocations[piece.Color]))
+            {
+                attacker.Add((x, y));
+                switch (piece.Color)
+                {
+                    case -1:
+                        inCheck = 1;
+                        break;
+                    case 1:
+                        inCheck = -1;
+                        break;
                 }
             }
 
@@ -650,26 +676,35 @@ namespace ChessModels
             return newMoves;
         }
 
-        private void RemoveMovingIntoCheck(int x, int y, ChessPiece piece, HashSet<(int, int)> newMoves)
+        private void CheckForCheck()
         {
-            foreach ((int, int) move in newMoves)
+            if (inCheck != 0)
             {
-                foreach (ChessPiece attacker in GameBoard.Values)
+                foreach (ChessPiece piece in GameBoard.Values)
                 {
-                    if (attacker.Type == "bishop" && attacker.Color != piece.Color)
+                    if (piece.Color == inCheck && piece.Type != "king")
                     {
-                        if (attacker.BlockedMoves.Contains(move))
+                        if (attacker.Count > 1)
                         {
-
+                            piece.AvailableMoves = new HashSet<(int, int)>();
+                        }
+                        else
+                        {
+                            (int, int) attackerPosition = attacker[0];
+                            foreach ((int, int) move in piece.AvailableMoves)
+                            {
+                                if (!GameBoard[attackerPosition].PotentialLineOfCheck.Item2.Contains(move))
+                                {
+                                    if (move != attackerPosition)
+                                    {
+                                        piece.AvailableMoves.Remove(move);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            } 
-        }
-
-        private void CheckForCheck()
-        {
-
+            }
         }
 
         private void CheckForMate()
