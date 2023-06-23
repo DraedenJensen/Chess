@@ -71,11 +71,20 @@ namespace ChessModels
         /// <returns>True if the move was successful, false otherwise</returns>
         public bool MovePiece((int, int) oldPosition, (int, int) newPosition)
         {
-            inCheck = 0;
-            attacker.Clear();
-
             if (UpdateCoordinates(oldPosition, newPosition))
             {
+                inCheck = 0;
+                attacker.Clear();
+
+                foreach (ChessPiece piece in GameBoard.Values)
+                {
+                    foreach ((int, int) move in piece.BlockedMovesFromCheck)
+                    {
+                        piece.AvailableMoves.Add(move);
+                    }
+                    piece.BlockedMovesFromCheck.Clear();
+                }
+
                 if ((GameBoard[newPosition].Type == "king"))
                 {
                     switch (GameBoard[newPosition].Color)
@@ -686,7 +695,11 @@ namespace ChessModels
                     {
                         if (attacker.Count > 1)
                         {
-                            piece.AvailableMoves = new HashSet<(int, int)>();
+                            foreach ((int, int) move in piece.AvailableMoves)
+                            {
+                                piece.BlockedMovesFromCheck.Add(move);
+                            }
+                            piece.AvailableMoves.Clear();
                         }
                         else
                         {
@@ -698,6 +711,7 @@ namespace ChessModels
                                     if (move != attackerPosition)
                                     {
                                         piece.AvailableMoves.Remove(move);
+                                        piece.BlockedMovesFromCheck.Add(move);
                                     }
                                 }
                             }

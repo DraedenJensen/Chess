@@ -655,6 +655,7 @@ namespace ChessModelsTest
             Assert.IsTrue(chessBoard.MovePiece((7, 2), (7, 3)));
             PrintAllPiecesMoves(board);
 
+            // TODO continue testing
         }
 
         /// <summary>
