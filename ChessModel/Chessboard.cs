@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Xml;
 
 namespace ChessModels
@@ -13,7 +15,7 @@ namespace ChessModels
         private int inCheck;
         // Empty until a king is in check, then the piece attacking the king is put in here
         // Rare cases exist where multiple pieces are attacking the king's current position, which is why this is a HashSet
-        private List<(int, int)> attacker;
+        private HashSet<(int, int)> attacker;
 
         private Dictionary<int, (int, int)> enemyKingLocations;
 
@@ -125,19 +127,67 @@ namespace ChessModels
                         UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
                     }
                 }
-
                 foreach (var entry in GameBoard)
                 {
+                    if (entry.Value.Type == "pawn")
+                    {
+                        for (int i = -1; i < 2; i += 2)
+                        {
+                            (int, int) move = (entry.Key.Item1 + entry.Value.Color, entry.Key.Item2 + i);
+                            if (GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move))
+                            {
+                                GameBoard[enemyKingLocations[entry.Value.Color]].BlockedMovesFromCheck.Add(move);
+                            }
+                        }
+                        continue;
+                    }
                     foreach ((int, int) move in entry.Value.AvailableMoves)
                     {
                         try
                         {
-                            GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move);
+                            if (GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move))
+                            {
+                                GameBoard[enemyKingLocations[entry.Value.Color]].BlockedMovesFromCheck.Add(move);
+                            }
                         }
                         catch (KeyNotFoundException) { }
                     }
-                }
+                    foreach ((int, int) move in entry.Value.BlockedMoves)
+                    {
+                        try
+                        {
+                            if (GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move))
+                            {
+                                GameBoard[enemyKingLocations[entry.Value.Color]].BlockedMovesFromCheck.Add(move);
+                            }
+                        }
+                        catch (KeyNotFoundException) { }
+                    }
+                    foreach ((int, int) move in entry.Value.BlockedMovesFromCheck)
+                    {
+                        try
+                        {
+                            if (GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move))
+                            {
+                                GameBoard[enemyKingLocations[entry.Value.Color]].BlockedMovesFromCheck.Add(move);
+                            }
+                        }
+                        catch (KeyNotFoundException) { }
+                    }
 
+                    if (attacker.Contains(entry.Key))
+                    {
+                        try
+                        {
+                            if (GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(entry.Value.PotentialLineOfCheck.Item3.ToArray()[0]))
+                            {
+                                GameBoard[enemyKingLocations[entry.Value.Color]].BlockedMovesFromCheck.Add(entry.Value.PotentialLineOfCheck.Item3.ToArray()[0]);
+                            }
+                        }
+                        catch (IndexOutOfRangeException) { }
+                    }
+                }
+               
                 CheckForCheck();
 
                 return true;
@@ -157,6 +207,7 @@ namespace ChessModels
         {
             piece.PotentialLineOfCheck.Item1.Clear();
             piece.PotentialLineOfCheck.Item2.Clear();
+            piece.PotentialLineOfCheck.Item3.Clear();
 
             (int, int) enemyKingLocation = enemyKingLocations[piece.Color];
 
@@ -176,6 +227,7 @@ namespace ChessModels
                 {
                     yMultiplier = 1;
                 }
+                piece.PotentialLineOfCheck.Item3.Add((enemyKingLocation.Item1 + xMultiplier, enemyKingLocation.Item2 + yMultiplier));
                 for (int i = 1; i < Math.Abs(xDistance); i++)
                 {
                     int xi = x + xMultiplier * i;
@@ -195,13 +247,14 @@ namespace ChessModels
         /// </summary>
         public void UpdateCheckLinesStraight(int x, int y, ChessPiece piece)
         {
-            if (piece.Type == "queen" && piece.PotentialLineOfCheck.Item2.Count() > 0)
+            if (piece.Type == "queen" && piece.PotentialLineOfCheck.Item3.Count() > 0)
             {
                 return;
             }
 
             piece.PotentialLineOfCheck.Item1.Clear();
             piece.PotentialLineOfCheck.Item2.Clear();
+            piece.PotentialLineOfCheck.Item3.Clear();
 
             (int, int) enemyKingLocation = enemyKingLocations[piece.Color];
 
@@ -214,6 +267,11 @@ namespace ChessModels
                 {
                     start = enemyKingLocation.Item2;
                     end = y;
+                    piece.PotentialLineOfCheck.Item3.Add((x, enemyKingLocation.Item2 - 1));
+                } 
+                else
+                {
+                    piece.PotentialLineOfCheck.Item3.Add((x, enemyKingLocation.Item2 + 1));
                 }
 
                 for (int i = start + 1; i < end; i++)
@@ -234,6 +292,11 @@ namespace ChessModels
                 {
                     start = enemyKingLocation.Item1;
                     end = x;
+                    piece.PotentialLineOfCheck.Item3.Add((enemyKingLocation.Item1 - 1, y));
+                }
+                else
+                {
+                    piece.PotentialLineOfCheck.Item3.Add((enemyKingLocation.Item1 + 1, y));
                 }
 
                 for (int i = start + 1; i < end; i++)
@@ -331,6 +394,7 @@ namespace ChessModels
                             if (move != entry.Key)
                             {
                                 availableMoves.Remove(move);
+                                piece.BlockedMovesFromCheck.Add(move);
                             }
                         }
                     }
@@ -671,7 +735,8 @@ namespace ChessModels
                             else if (GameBoard[(x + i, y + j)].Color != piece.Color)
                             {
                                 newMoves.Add((x + i, y + j));
-                            } else
+                            } 
+                            else
                             {
                                 blockedMoves.Add((x + i, y + j));
                             }
@@ -679,7 +744,7 @@ namespace ChessModels
                     }
                 }
             }
-
+         
             // TODO check for castling
 
             return newMoves;
@@ -703,7 +768,7 @@ namespace ChessModels
                         }
                         else
                         {
-                            (int, int) attackerPosition = attacker[0];
+                            (int, int) attackerPosition = attacker.ToList()[0];
                             foreach ((int, int) move in piece.AvailableMoves)
                             {
                                 if (!GameBoard[attackerPosition].PotentialLineOfCheck.Item2.Contains(move))

@@ -21,7 +21,8 @@
         // These hash sets are only filled if the piece is a bishop, rook, or queen who is on the same relevant row or diagonal as the enemy king
         // Item 1 is the squares of all pieces between the piece and the enemy king
         // Item 2 is all squares between the piece and the enemy king (including all those in Item 1)
-        public (HashSet<(int, int)>, HashSet<(int, int)>) PotentialLineOfCheck { get; set; }
+        // Item 3 is the square behind the king, which the king can't move to to escape check
+        public (HashSet<(int, int)>, HashSet<(int, int)>, HashSet<(int, int)>) PotentialLineOfCheck { get; set; }
 
         /// <summary>
         /// Creates a new instance of the ChessPiece class, given defining parameters
@@ -36,7 +37,7 @@
             BlockedMoves = new();
             BlockedMovesFromCheck = new();
 
-            PotentialLineOfCheck = (new HashSet<(int, int)>(), new HashSet<(int, int)>());
+            PotentialLineOfCheck = (new HashSet<(int, int)>(), new HashSet<(int, int)>(), new HashSet<(int, int)>());
         }
     }
 }

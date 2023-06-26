@@ -654,8 +654,144 @@ namespace ChessModelsTest
             // White is no longer in check, moves open up
             Assert.IsTrue(chessBoard.MovePiece((7, 2), (7, 3)));
             PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
 
-            // TODO continue testing
+            // Black queen to g3
+            // White is back in check; should only be able to move the king or kill the queen
+            Assert.IsTrue(chessBoard.MovePiece((8, 4), (7, 3)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White king to e2
+            // White is no longer in check, moves open up (but the king can't move anywhere from here)
+            Assert.IsTrue(chessBoard.MovePiece((5, 1), (5, 2)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black pawn to d5
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+            // White pawn to d5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (4, 5)));
+
+            // Black bishop to g4
+            // White is in check, and their only possible move is to block with the knight
+            Assert.IsTrue(chessBoard.MovePiece((3, 8), (7, 4)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White knight to f3
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (6, 3)));
+            // Black knight to c6
+            Assert.IsTrue(chessBoard.MovePiece((2, 8), (3, 6)));
+            // White pawn to d6
+            Assert.IsTrue(chessBoard.MovePiece((4, 5), (4, 6)));
+            // Black bishop to f5
+            Assert.IsTrue(chessBoard.MovePiece((7, 4), (6, 5)));
+
+            // White pawn to d7
+            // Testing pawn check - black must move the king or kill the pawn with the king or bishop
+            Assert.IsTrue(chessBoard.MovePiece((4, 6), (4, 7)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black king to d8
+            // Black escapes check and blocks the white pawn from moving forward
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (4, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White pawn to a4
+            Assert.IsTrue(chessBoard.MovePiece((1, 2), (1, 4)));
+
+            // Black knight to d4
+            // White is in check; they can either move their king or kill the knight with their knight
+            Assert.IsTrue(chessBoard.MovePiece((3, 6), (4, 4)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White king to e3
+            // Fun fact, the king is NOT in check, but he has nowhere to go (poor guy)
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 3)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black pawn to a4
+            // Now the king can kill the knight, if he so chooses
+            Assert.IsTrue(chessBoard.MovePiece((5, 5), (5, 4)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White bishop to h3
+            Assert.IsTrue(chessBoard.MovePiece((6, 1), (8, 3)));
+
+            // Black bishop to c5
+            // Now the king can't kill the knight, even if he so chooses
+            Assert.IsTrue(chessBoard.MovePiece((6, 8), (3, 5)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White bishop to f5
+            // The black bishop is dead, so now the white king can kill the pawn in front of it
+            // But the black king can no longer kill the pawn in front of it
+            Assert.IsTrue(chessBoard.MovePiece((8, 3), (6, 5)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black king to e7
+            Assert.IsTrue(chessBoard.MovePiece((4, 8), (5, 7)));
+            // White pawn to d3
+            Assert.IsTrue(chessBoard.MovePiece((4, 2), (4, 3)));
+            // Black pawn to d3
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (4, 3)));
+            // White queen to d3
+            Assert.IsTrue(chessBoard.MovePiece((4, 1), (4, 3)));
+            // Black rook to e8
+            Assert.IsTrue(chessBoard.MovePiece((1, 8), (5, 8)));
+
+            // White queen to d4
+            // The black king only has two possible moves
+            Assert.IsTrue(chessBoard.MovePiece((4, 3), (4, 4)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black king to f8
+            // This puts white into check; the king has two possible moves
+            // They can also block with the bishop, or kill with the pawn
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (6, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White king to d2
+            Assert.IsTrue(chessBoard.MovePiece((5, 3), (4, 2)));
+
+            // Black rook to e2
+            // The white king should be able to kill this rook
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (5, 2)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White king to e2
+            Assert.IsTrue(chessBoard.MovePiece((4, 2), (5, 2)));
+
+            // Black queen to f3
+            // The white king is in check
+            Assert.IsTrue(chessBoard.MovePiece((7, 3), (6, 3)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White king to f3
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (6, 3)));
+            // Black pawn to b6
+            Assert.IsTrue(chessBoard.MovePiece((2, 7), (2, 6)));
+
+            // White queen to c5
+            // Black is in check; king has no moves
+            // Only option is to block with knight, or kill with pawn
+            Assert.IsTrue(chessBoard.MovePiece((4, 4), (3, 5)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // TODO last major edge case to test is king blocking king
         }
 
         /// <summary>
