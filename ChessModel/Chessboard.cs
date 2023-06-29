@@ -42,8 +42,8 @@ namespace ChessModels
             string[] arr = { "rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook" };
             for (int i = 0; i < 8; i++)
             {
-                ChessPiece white = new(1, arr[i], false);
-                ChessPiece black = new(-1, arr[i], false);
+                ChessPiece white = new(1, arr[i]);
+                ChessPiece black = new(-1, arr[i]);
 
                 GameBoard.Add((i + 1, 1), white);
                 GameBoard.Add((i + 1, 8), black);
@@ -52,8 +52,8 @@ namespace ChessModels
             // Fill pawns
             for (int i = 1; i < 9; i++)
             {
-                ChessPiece whitePawn = new(1, "pawn", false);
-                ChessPiece blackPawn = new(-1, "pawn", false);
+                ChessPiece whitePawn = new(1, "pawn");
+                ChessPiece blackPawn = new(-1, "pawn");
 
                 GameBoard.Add((i, 2), whitePawn);
                 GameBoard.Add((i, 7), blackPawn);
@@ -87,18 +87,6 @@ namespace ChessModels
                     piece.BlockedMovesFromCheck.Clear();
                 }
 
-                if ((GameBoard[newPosition].Type == "king"))
-                {
-                    switch (GameBoard[newPosition].Color)
-                    {
-                        case -1:
-                            enemyKingLocations[1] = newPosition;
-                            break;
-                        case 1:
-                            enemyKingLocations[-1] = newPosition;
-                            break;
-                    }
-                }
                 turn++;
 
                 foreach (var entry in GameBoard)
@@ -127,6 +115,68 @@ namespace ChessModels
                         UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
                     }
                 }
+
+                // Update a king's move if castling may have been affected
+                int color = 0;
+                if (oldPosition.Item2 == 1)
+                {
+                    color = -1;
+                }
+                else if (oldPosition.Item2 == 8)
+                {
+                    color = 1;
+                }
+                if (color != 0)
+                {
+                    if (!GameBoard[enemyKingLocations[color]].HasMoved)
+                    {
+                        int x = enemyKingLocations[color].Item1;
+                        int y = enemyKingLocations[color].Item2;
+                        UpdatePossibleMoves(x, y, GameBoard[(x, y)]);
+                    }
+                }
+                color = 0;
+                if (newPosition.Item2 == 1)
+                {
+                    color = -1;
+                }
+                else if (newPosition.Item2 == 8)
+                {
+                    color = 1;
+                }
+                if (color != 0)
+                {
+                    if (!GameBoard[enemyKingLocations[color]].HasMoved)
+                    {
+                        int x = enemyKingLocations[color].Item1;
+                        int y = enemyKingLocations[color].Item2;
+                        UpdatePossibleMoves(x, y, GameBoard[(x, y)]);
+                    }
+                }
+                // Can't castle out of check
+                if (inCheck == 1)
+                {
+                    if (GameBoard[enemyKingLocations[-1]].AvailableMoves.Remove((3, 1))) ;
+                    {
+                        GameBoard[enemyKingLocations[-1]].BlockedMovesFromCheck.Add((3, 1));
+                    }
+                    if (GameBoard[enemyKingLocations[-1]].AvailableMoves.Remove((7, 1))) ;
+                    {
+                        GameBoard[enemyKingLocations[-1]].BlockedMovesFromCheck.Add((7, 1));
+                    }
+                }
+                else if (inCheck == -1)
+                {
+                    if (GameBoard[enemyKingLocations[1]].AvailableMoves.Remove((3, 8))) ;
+                    {
+                        GameBoard[enemyKingLocations[1]].BlockedMovesFromCheck.Add((3, 8));
+                    }
+                    if (GameBoard[enemyKingLocations[1]].AvailableMoves.Remove((7, 8))) ;
+                    {
+                        GameBoard[enemyKingLocations[1]].BlockedMovesFromCheck.Add((7, 8));
+                    }
+                }
+
                 foreach (var entry in GameBoard)
                 {
                     if (entry.Value.Type == "pawn")
@@ -336,15 +386,55 @@ namespace ChessModels
             if (piece.AvailableMoves.Contains(newPosition))
             {
                 GameBoard.Remove(oldPosition);
+                if (piece.Type == "king")
+                {
+                    switch (piece.Color)
+                    {
+                        case -1:
+                            enemyKingLocations[1] = newPosition;
+                            break;
+                        case 1:
+                            enemyKingLocations[-1] = newPosition;
+                            break;
+                    }
+                }
 
                 if (GameBoard.ContainsKey(newPosition))
                 {
                     CapturedPieces.Add(GameBoard[newPosition]);
                     GameBoard[newPosition] = piece;
-                } else
+                } 
+                else
                 {
                     GameBoard.Add(newPosition, piece);
+
+                    // Check if the move is a castle
+                    if (piece.Type == "king" && !piece.HasMoved)
+                    {
+                        if (newPosition == (3, 1))
+                        {
+                            GameBoard[(1, 1)].AvailableMoves.Add((4, 1));
+                            MovePiece((1, 1), (4, 1));
+                        }
+                        else if (newPosition == (7, 1))
+                        {
+                            GameBoard[(8, 1)].AvailableMoves.Add((6, 1));
+                            MovePiece((8, 1), (6, 1));
+                        }
+                        else if (newPosition == (3, 8))
+                        {
+                            GameBoard[(1, 8)].AvailableMoves.Add((4, 8));
+                            MovePiece((1, 8), (4, 8));
+                        }
+                        else if (newPosition == (7, 8))
+                        {
+                            GameBoard[(8, 8)].AvailableMoves.Add((6, 8));
+                            MovePiece((8, 8), (6, 8));
+                        }
+                    }
                 }
+                piece.HasMoved = true;
+
                 return true;
             }
 
@@ -744,9 +834,47 @@ namespace ChessModels
                     }
                 }
             }
-         
-            // TODO check for castling
 
+            if (piece.HasMoved)
+            {
+                return newMoves;
+            }
+
+            // Check for castling
+            for (int i = 1; i < 9; i += 7)
+            {
+                if (GameBoard.ContainsKey((i, y)))
+                {
+                    if (GameBoard[(i, y)].Type == "rook" && !GameBoard[(i, y)].HasMoved)
+                    {
+                        bool piecesInWay = false;
+
+                        int start = 2;
+                        int end = 5;
+
+                        if (i == 8)
+                        {
+                            start = 6;
+                            end = 8;
+                        }
+
+                        for (int j = start; j < end; j++)
+                        {
+                            if (GameBoard.ContainsKey((j, y)))
+                            {
+                                piecesInWay = true;
+                                break;
+                            }
+                        }
+
+                        if (!piecesInWay)
+                        {
+                            newMoves.Add((start + 1, y));
+                        }
+                    }
+                }
+            }
+            
             return newMoves;
         }
 

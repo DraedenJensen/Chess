@@ -1,4 +1,5 @@
 using ChessModels;
+using NuGet.Frameworks;
 using System.Diagnostics;
 
 namespace ChessModelsTest
@@ -827,6 +828,274 @@ namespace ChessModelsTest
             Assert.IsTrue(chessBoard.MovePiece((6, 6), (7, 6)));
             Assert.IsTrue(board[(7, 6)].AvailableMoves.Count == 2);
             Assert.IsTrue(board[(7, 4)].AvailableMoves.Count == 3);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that castling appears as an available move for a king when it should
+        /// </summary>
+        [TestMethod]
+        public void TestCastling_Verification()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 5)));
+
+            // Neither king can castle, bishop and knight in the way
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 1);
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Count == 1);
+
+            // White knight to f3
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (6, 3)));
+            // Black knight to f6
+            Assert.IsTrue(chessBoard.MovePiece((7, 8), (6, 6)));
+
+            // Neither king can castle, bishop in the way
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 1);
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Count == 1);
+
+            // White bishop to c4
+            Assert.IsTrue(chessBoard.MovePiece((6, 1), (3, 4)));
+            // Black bishop to c5
+            Assert.IsTrue(chessBoard.MovePiece((6, 8), (3, 5)));
+
+            // Both kings can castle
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 3);
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Count == 3);
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Contains((7, 1)));
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Contains((7, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White knight to g1
+            Assert.IsTrue(chessBoard.MovePiece((6, 3), (7, 1)));
+            // Black knight to g8
+            Assert.IsTrue(chessBoard.MovePiece((6, 6), (7, 8)));
+
+            // Neither king can castle anymore
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 2);
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Count == 2);
+            Assert.IsFalse(board[(5, 1)].AvailableMoves.Contains((7, 1)));
+            Assert.IsFalse(board[(5, 8)].AvailableMoves.Contains((7, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White knight to f3
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (6, 3)));
+            // Black knight to f6
+            Assert.IsTrue(chessBoard.MovePiece((7, 8), (6, 6)));
+
+            // White rook to g1
+            Assert.IsTrue(chessBoard.MovePiece((8, 1), (7, 1)));
+            // Black king to e7
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (5, 7)));
+
+            // Neither king can castle
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 2);
+            Assert.IsTrue(board[(5, 7)].AvailableMoves.Count == 3);
+            Assert.IsFalse(board[(5, 1)].AvailableMoves.Contains((7, 1)));
+            Assert.IsFalse(board[(5, 7)].AvailableMoves.Contains((7, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White rook to h1
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (8, 1)));
+            // Black king to e8
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 8)));
+
+            // Neither king can castle, white rook and black king have moved
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 2);
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Count == 2);
+            Assert.IsFalse(board[(5, 1)].AvailableMoves.Contains((7, 1)));
+            Assert.IsFalse(board[(5, 8)].AvailableMoves.Contains((7, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White pawn to d4
+            Assert.IsTrue(chessBoard.MovePiece((4, 2), (4, 4)));
+            // Black pawn to d5
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+
+            // White queen to e2
+            Assert.IsTrue(chessBoard.MovePiece((4, 1), (5, 2)));
+            // Black queen to e7
+            Assert.IsTrue(chessBoard.MovePiece((4, 8), (5, 7)));
+            // White bishop to d2
+            Assert.IsTrue(chessBoard.MovePiece((3, 1), (4, 2)));
+            // Black bishop to d7
+            Assert.IsTrue(chessBoard.MovePiece((3, 8), (4, 7)));
+            // White knight to c3
+            Assert.IsTrue(chessBoard.MovePiece((2, 1), (3, 3)));
+            // Black knight to c6
+            Assert.IsTrue(chessBoard.MovePiece((2, 8), (3, 6)));
+
+            // White king can castle queen side, he hasn't moved
+            // Black king can't castle at all, he already moved
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 3);
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Count == 2);
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Contains((3, 1)));
+            Assert.IsFalse(board[(5, 8)].AvailableMoves.Contains((3, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that castling works as intended, first with both kings castling king-side
+        /// </summary>
+        [TestMethod]
+        public void TestCastling_KingSide()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 5)));
+            // White knight to f3
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (6, 3)));
+            // Black knight to f6
+            Assert.IsTrue(chessBoard.MovePiece((7, 8), (6, 6)));
+            // White bishop to c4
+            Assert.IsTrue(chessBoard.MovePiece((6, 1), (3, 4)));
+            // Black bishop to c5
+            Assert.IsTrue(chessBoard.MovePiece((6, 8), (3, 5)));
+
+            // White king castles
+            Assert.IsTrue(chessBoard.MovePiece((5, 1), (7, 1)));
+            // Black king castles
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (7, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that castling works as intended, now with both kings castling queen-side
+        /// </summary>
+        [TestMethod]
+        public void TestCastling_QueenSide()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to d4
+            Assert.IsTrue(chessBoard.MovePiece((4, 2), (4, 4)));
+            // Black pawn to d5
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+            // White knight to c3
+            Assert.IsTrue(chessBoard.MovePiece((2, 1), (3, 3)));
+            // Black knight to c6
+            Assert.IsTrue(chessBoard.MovePiece((2, 8), (3, 6)));
+            // White bishop to e3
+            Assert.IsTrue(chessBoard.MovePiece((3, 1), (5, 3)));
+            // Black bishop to e6
+            Assert.IsTrue(chessBoard.MovePiece((3, 8), (5, 6)));
+            // White queen to d3
+            Assert.IsTrue(chessBoard.MovePiece((4, 1), (4, 3)));
+            // Black queen to d6
+            Assert.IsTrue(chessBoard.MovePiece((4, 8), (4, 6)));
+
+            // White king castles
+            Assert.IsTrue(chessBoard.MovePiece((5, 1), (3, 1)));
+            // Black king castles
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (3, 8)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that you can't castle into check, even if all other conditions are met
+        /// </summary>
+        [TestMethod]
+        public void TestCastling_IntoCheck()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 5)));
+            // White knight to f3
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (6, 3)));
+            // Black knight to f6
+            Assert.IsTrue(chessBoard.MovePiece((7, 8), (6, 6)));
+            // White bishop to c4
+            Assert.IsTrue(chessBoard.MovePiece((6, 1), (3, 4)));
+            // Black bishop to c5
+            Assert.IsTrue(chessBoard.MovePiece((6, 8), (3, 5)));
+            // White pawn to f4
+            Assert.IsTrue(chessBoard.MovePiece((6, 2), (6, 4)));
+
+            // Black king castles
+            // But the white king can't castle, they'd be moving into check
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (7, 8)));
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 2);
+            Assert.IsFalse(board[(5, 1)].AvailableMoves.Contains((7, 1)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White knight to d4
+            // This blocks the bishop's line, so the white king can now castle
+            Assert.IsTrue(chessBoard.MovePiece((6, 3), (4, 4)));
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 4);
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Contains((7, 1)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black bishop to b6
+            Assert.IsTrue(chessBoard.MovePiece((3, 5), (2, 6)));
+
+            // White king castles
+            // Now the white knight is pinned
+            Assert.IsTrue(chessBoard.MovePiece((5, 1), (7, 1)));
+            Assert.IsTrue(board[(4, 4)].AvailableMoves.Count == 0);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that you cannot castle out of check, even if all other conditions are met
+        /// </summary>
+        [TestMethod]
+        public void TestCastling_OutOfCheck()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 5)));
+            // White knight to f3
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (6, 3)));
+            // Black knight to f6
+            Assert.IsTrue(chessBoard.MovePiece((7, 8), (6, 6)));
+            // White bishop to c4
+            Assert.IsTrue(chessBoard.MovePiece((6, 1), (3, 4)));
+            // Black knight to c6
+            Assert.IsTrue(chessBoard.MovePiece((2, 8), (3, 6)));
+            // White pawn to d4
+            Assert.IsTrue(chessBoard.MovePiece((4, 2), (4, 4)));
+            
+            // Black bishop to b4
+            // White king would be able to castle, but can't due to check
+            Assert.IsTrue(chessBoard.MovePiece((6, 8), (2, 4)));
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 2);
+            Assert.IsFalse(board[(5, 1)].AvailableMoves.Contains((7, 1)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White queen to d2
+            // This blocks check, so the white king could castle again
+            Assert.IsTrue(chessBoard.MovePiece((4, 1), (4, 2)));
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 4);
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Contains((7, 1)));
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
         }

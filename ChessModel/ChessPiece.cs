@@ -10,6 +10,8 @@
 
         public bool Captured { get; set; }
 
+        public bool HasMoved { get; set; }
+
         public HashSet<(int, int)> AvailableMoves { get; set; }
 
         // List of moves a piece would be able to move to, but are blocked by a piece they can't capture
@@ -27,12 +29,13 @@
         /// <summary>
         /// Creates a new instance of the ChessPiece class, given defining parameters
         /// </summary>
-        public ChessPiece(int color, string type, bool captured) 
+        public ChessPiece(int color, string type) 
         {
             Color = color;
             Type = type;
-            Captured = captured;
-
+            
+            Captured = false;
+            HasMoved = false;
             AvailableMoves = new();
             BlockedMoves = new();
             BlockedMovesFromCheck = new();
