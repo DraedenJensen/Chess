@@ -133,7 +133,7 @@ namespace ChessModels
                     {
                         for (int i = -1; i < 2; i += 2)
                         {
-                            (int, int) move = (entry.Key.Item1 + entry.Value.Color, entry.Key.Item2 + i);
+                            (int, int) move = (entry.Key.Item1 + i, entry.Key.Item2 + entry.Value.Color);
                             if (GameBoard[enemyKingLocations[entry.Value.Color]].AvailableMoves.Remove(move))
                             {
                                 GameBoard[enemyKingLocations[entry.Value.Color]].BlockedMovesFromCheck.Add(move);

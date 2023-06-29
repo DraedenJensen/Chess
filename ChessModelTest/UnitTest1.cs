@@ -715,7 +715,7 @@ namespace ChessModelsTest
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
 
-            // Black pawn to a4
+            // Black pawn to e4
             // Now the king can kill the knight, if he so chooses
             Assert.IsTrue(chessBoard.MovePiece((5, 5), (5, 4)));
             PrintAllPiecesMoves(board);
@@ -790,8 +790,45 @@ namespace ChessModelsTest
             Assert.IsTrue(chessBoard.MovePiece((4, 4), (3, 5)));
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
+        }
 
-            // TODO last major edge case to test is king blocking king
+        /// <summary>
+        /// Tests that kings can't move next to each other
+        /// </summary>
+        [TestMethod]
+        public void TestKingBlockingKing()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 5)));
+
+            // White king to e2
+            Assert.IsTrue(chessBoard.MovePiece((5, 1), (5, 2)));
+            // Black king to e7
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (5, 7)));
+            // White king to f3
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (6, 3)));
+            // Black king to f6
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (6, 6)));
+
+            // White king to g4
+            // The black king shouldn't be able to move within the white king's range
+            Assert.IsTrue(chessBoard.MovePiece((6, 3), (7, 4)));
+            Assert.IsTrue(board[(6, 6)].AvailableMoves.Count == 3);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black king to g6
+            // This cuts off either king from moving forward at all
+            Assert.IsTrue(chessBoard.MovePiece((6, 6), (7, 6)));
+            Assert.IsTrue(board[(7, 6)].AvailableMoves.Count == 2);
+            Assert.IsTrue(board[(7, 4)].AvailableMoves.Count == 3);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
         }
 
         /// <summary>
