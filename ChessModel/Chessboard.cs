@@ -22,25 +22,44 @@ namespace ChessModels
 
         private int turn;
 
+        public bool GameOver { get; protected set; }
+
         // If an en passant is available this value is used
         // Item 1 is the color of the pawn that could be captured
         // Item 2 is the square a capturing pawn would move to
         private (int, (int, int)) enPassant;
 
         public delegate string PromotionMethod();
+        public delegate void CheckmateMethod(int color);
+        public delegate void StalemateMethod();
+
         private PromotionMethod promote;
+        private CheckmateMethod checkmate;
+        private StalemateMethod stalemate;
 
         /// <summary>
-        /// Default constructor which initializes a chessboard with a promotion method which always returns
-        /// a queen
+        /// Default constructor which initializes a chessboard with generic promotion and game over methods
         /// </summary>
-        public Chessboard() : this(() => "queen") { }
+        public Chessboard() : this (
+            () => "queen", 
+            (x) => { 
+                switch (x) { 
+                    case 1: 
+                        Debug.WriteLine("Black has won"); 
+                        break; 
+                    case -1: 
+                        Debug.WriteLine("White has won"); 
+                        break; 
+                } 
+            }, 
+            () => { Debug.WriteLine("draw"); } 
+        ) { }
 
         /// <summary>
         /// Constructor which initializes all pieces and values.
         /// </summary>
         /// <param name="promote">Callback method for pawn promotion</param>
-        public Chessboard(PromotionMethod promote)
+        public Chessboard(PromotionMethod promote, CheckmateMethod checkmate, StalemateMethod stalemate)
         {
             GameBoard = new();
             CapturedPieces = new();
@@ -54,8 +73,11 @@ namespace ChessModels
             enPassant = (0, (0, 0));
 
             this.promote = promote; 
+            this.checkmate = checkmate;
+            this.stalemate = stalemate;
 
             turn = 1;
+            GameOver = false;
 
             // Fill back row pieces
             string[] arr = { "rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook" };
@@ -92,6 +114,10 @@ namespace ChessModels
         /// <returns>True if the move was successful, false otherwise</returns>
         public bool MovePiece((int, int) oldPosition, (int, int) newPosition)
         {
+            if (GameOver)
+            {
+                return false;
+            }
             if (UpdateCoordinates(oldPosition, newPosition))
             {
                 inCheck = 0;
@@ -259,12 +285,9 @@ namespace ChessModels
                 }
                 
                 CheckForCheck();
+                CheckForMate();
 
                 return true;
-
-                //TODO these haven't been implemented and I'm not entirely sure how they'll end up conveying their results
-                //CheckForCheck();
-                //CheckForMate();
             }
 
             return false;
@@ -970,7 +993,36 @@ namespace ChessModels
 
         private void CheckForMate()
         {
-          
+            for (int i = -1; i < 2; i += 2)
+            {
+                bool hasMoves = false;
+                foreach (var entry in GameBoard)
+                {
+                    if (entry.Value.Color == i)
+                    {
+                        if (entry.Value.AvailableMoves.Count > 0)
+                        {
+                            hasMoves = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasMoves)
+                {
+                    if (inCheck == i)
+                    {
+                        checkmate(i);
+                        GameOver = true;
+                    }
+                    else
+                    {
+                        stalemate();
+                        GameOver = true;
+                    }
+                }
+            }
+            return;
         }
     }
 }

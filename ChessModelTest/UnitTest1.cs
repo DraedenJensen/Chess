@@ -1372,6 +1372,30 @@ namespace ChessModelsTest
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
         }
+
+        /// <summary>
+        /// Tests a very basic checkmate setup using the Fool's Mate opening
+        /// </summary>
+        [TestMethod]
+        public void TestCheckmate()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to f3
+            Assert.IsTrue(chessBoard.MovePiece((6, 2), (6, 3)));
+            // Black pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 5)));
+            // White pawn to g4
+            Assert.IsTrue(chessBoard.MovePiece((7, 2), (7, 4)));
+
+            // Black queen to h4
+            // Checkmate
+            Assert.IsTrue(chessBoard.MovePiece((4, 8), (8, 4)));
+            Assert.IsTrue(chessBoard.GameOver);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
       
         /// <summary>
         /// Private helper method used for testing which displays all pieces' positions, colors, types, and available moves
