@@ -12,6 +12,7 @@ namespace ChessModels
         public Dictionary<(int, int), ChessPiece> GameBoard { get; protected set; }
         public HashSet<ChessPiece> CapturedPieces { get; protected set; }
 
+        // Tracks the color (white = 1, black = -1) in check (0 if no one is in check)
         private int inCheck;
         // Empty until a king is in check, then the piece attacking the king is put in here
         // Rare cases exist where multiple pieces are attacking the king's current position, which is why this is a HashSet
@@ -20,6 +21,11 @@ namespace ChessModels
         private Dictionary<int, (int, int)> enemyKingLocations;
 
         private int turn;
+
+        // If an en passant is available this value is used
+        // Item 1 is the color of the pawn that could be captured
+        // Item 2 is the square a capturing pawn would move to
+        private (int, (int, int)) enPassant;
 
         /// <summary>
         /// Constructor which initializes all pieces and values.
@@ -35,6 +41,7 @@ namespace ChessModels
 
             inCheck = 0;
             attacker = new();
+            enPassant = (0, (0, 0));
 
             turn = 1;
 
@@ -110,7 +117,8 @@ namespace ChessModels
                     }
                     
                     if (entry.Value.AvailableMoves.Contains(oldPosition) || entry.Value.BlockedMoves.Contains(oldPosition) ||
-                        entry.Value.AvailableMoves.Contains(newPosition) || entry.Value.BlockedMoves.Contains(newPosition))
+                        entry.Value.AvailableMoves.Contains(newPosition) || entry.Value.BlockedMoves.Contains(newPosition) ||
+                        (entry.Value.Type == "pawn" && entry.Value.BlockedMoves.Contains(enPassant.Item2)))
                     {
                         UpdatePossibleMoves(entry.Key.Item1, entry.Key.Item2, entry.Value);
                     }
@@ -237,7 +245,7 @@ namespace ChessModels
                         catch (IndexOutOfRangeException) { }
                     }
                 }
-               
+                
                 CheckForCheck();
 
                 return true;
@@ -373,6 +381,7 @@ namespace ChessModels
         private bool UpdateCoordinates((int, int) oldPosition, (int, int) newPosition)
         {
             ChessPiece piece;
+            (int, (int, int)) newEnPassant = (0, (0, 0));
 
             try
             {
@@ -398,12 +407,29 @@ namespace ChessModels
                             break;
                     }
                 }
+                if (piece.Type == "pawn")
+                {
+                    if (newPosition.Item2 - oldPosition.Item2 == 2)
+                    {
+                        newEnPassant = (piece.Color, (newPosition.Item1, newPosition.Item2 - 1));
+                    }
+                    else if (newPosition.Item2 - oldPosition.Item2 == -2)
+                    {
+                        newEnPassant = (piece.Color, (newPosition.Item1, newPosition.Item2 + 1));
+                    }
+                }
 
                 if (GameBoard.ContainsKey(newPosition))
                 {
                     CapturedPieces.Add(GameBoard[newPosition]);
                     GameBoard[newPosition] = piece;
-                } 
+                }
+                else if (piece.Type == "pawn" && enPassant.Item1 != piece.Color && enPassant.Item2 == newPosition)
+                {
+                    CapturedPieces.Add(GameBoard[(newPosition.Item1, newPosition.Item2 + enPassant.Item1)]);
+                    GameBoard.Remove((newPosition.Item1, newPosition.Item2 + enPassant.Item1));
+                    GameBoard.Add(newPosition, piece);
+                }
                 else
                 {
                     GameBoard.Add(newPosition, piece);
@@ -433,7 +459,17 @@ namespace ChessModels
                         }
                     }
                 }
+
                 piece.HasMoved = true;
+                foreach (var entry in GameBoard)
+                {
+                    if (entry.Value.Type == "pawn")
+                    {
+                        entry.Value.AvailableMoves.Remove(enPassant.Item2);
+                        entry.Value.BlockedMovesFromCheck.Remove(enPassant.Item2);
+                    }
+                }
+                enPassant = newEnPassant;
 
                 return true;
             }
@@ -552,6 +588,10 @@ namespace ChessModels
                     {
                         blockedMoves.Add((x + i, y + color));
                     }
+                } 
+                else if (enPassant.Item1 != color && enPassant.Item2 == (x + i, y + color))
+                {
+                    newMoves.Add((x + i, y + color));
                 }
                 else
                 {
@@ -570,8 +610,6 @@ namespace ChessModels
                     blockedMoves.Add((x, y + color * 2));
                 }
             }
-
-            // TODO Check for en passant
 
             return newMoves;
         }
@@ -903,8 +941,11 @@ namespace ChessModels
                                 {
                                     if (move != attackerPosition)
                                     {
-                                        piece.AvailableMoves.Remove(move);
-                                        piece.BlockedMovesFromCheck.Add(move);
+                                        if (!(piece.Type == "pawn" && move == enPassant.Item2 && attackerPosition == (enPassant.Item2.Item1, enPassant.Item2.Item2 + enPassant.Item1)))
+                                        {
+                                            piece.AvailableMoves.Remove(move);
+                                            piece.BlockedMovesFromCheck.Add(move);
+                                        }
                                     }
                                 }
                             }

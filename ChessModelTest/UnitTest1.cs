@@ -1099,7 +1099,198 @@ namespace ChessModelsTest
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
         }
+        
+        // Tests a basic case for en passant, first for white, then for black
+        [TestMethod]
+        public void TestEnPassant_Basic()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
 
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to a5
+            Assert.IsTrue(chessBoard.MovePiece((1, 7), (1, 5)));
+            // White pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (5, 5)));
+            
+            // Black pawn to d5
+            // White should be able to en passant
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+            Assert.IsTrue(board[(5, 5)].AvailableMoves.Contains((4, 6)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White pawn to d6
+            // En passant; black pawn at d5 should be captured
+            Assert.IsTrue(chessBoard.MovePiece((5, 5), (4, 6)));
+            Assert.IsTrue(chessBoard.CapturedPieces.Count == 1);
+            Assert.IsFalse(board.ContainsKey((4, 5)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black pawn to a4
+            Assert.IsTrue(chessBoard.MovePiece((1, 5), (1, 4)));
+            
+            // White pawn to b4
+            // Black should be able to en passant
+            Assert.IsTrue(chessBoard.MovePiece((2, 2), (2, 4)));
+            Assert.IsTrue(board[(1, 4)].AvailableMoves.Contains((2, 3)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black pawn to b3
+            // En passant; white pawn at b4 should be captured
+            Assert.IsTrue(chessBoard.MovePiece((1, 4), (2, 3)));
+            Assert.IsTrue(chessBoard.CapturedPieces.Count == 2);
+            Assert.IsFalse(board.ContainsKey((2, 4)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that an opportunity for en passant is only available for one turn, even if the
+        /// pawn setup doesn't change
+        /// </summary>
+        [TestMethod]
+        public void TestEnPassant_GoesAway()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to a5
+            Assert.IsTrue(chessBoard.MovePiece((1, 7), (1, 5)));
+            // White pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (5, 5)));
+            
+            // Black pawn to d5
+            // White can en passant
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+            Assert.IsTrue(board[(5, 5)].AvailableMoves.Contains((4, 6)));
+            
+            // White pawn to h4
+            // White has given up the opportunity for en passant
+            Assert.IsTrue(chessBoard.MovePiece((8, 2), (8, 4)));
+            Assert.IsFalse(board[(5, 5)].AvailableMoves.Contains((4, 6)));
+        }
+
+        /// <summary>
+        /// Tests that an opportunity for en passant goes away if not taken, but a new one can replace
+        /// it on the very next turn (trust me this is relevant for the way I coded en passant
+        /// </summary>
+        [TestMethod]
+        public void TestEnPassant_CanChange()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to a5
+            Assert.IsTrue(chessBoard.MovePiece((1, 7), (1, 5)));
+            // White pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (5, 5)));
+            // Black pawn to a4;
+            Assert.IsTrue(chessBoard.MovePiece((1, 5), (1, 4)));
+
+            // White pawn to b4
+            // Black can en passant
+            Assert.IsTrue(chessBoard.MovePiece((2, 2), (2, 4)));
+            Assert.IsTrue(board[(1, 4)].AvailableMoves.Contains((2, 3)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black pawn to d5
+            // Black can no longer en passant
+            // White can en passant
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+            Assert.IsFalse(board[(1, 4)].AvailableMoves.Contains((2, 3)));
+            Assert.IsTrue(board[(5, 5)].AvailableMoves.Contains((4, 6)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that the usual rules for moving into work with the special case of en passant
+        /// </summary>
+        [TestMethod]
+        public void TestEnPassant_MovingIntoCheck()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to e6
+            Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 6)));
+            // White queen to f3
+            Assert.IsTrue(chessBoard.MovePiece((4, 1), (6, 3)));
+            // Black queen to e7
+            Assert.IsTrue(chessBoard.MovePiece((4, 8), (5, 7)));
+            // White queen to f5
+            Assert.IsTrue(chessBoard.MovePiece((6, 3), (6, 5)));
+            // Black pawn to f5
+            Assert.IsTrue(chessBoard.MovePiece((5, 6), (6, 5)));
+            // White pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (5, 5)));
+
+            // Black pawn to d5
+            // Normally white could en passant, but can't because that would be moving into check
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+            Assert.IsFalse(board[(5, 5)].AvailableMoves.Contains((4, 6)));
+
+            // White king to d1
+            // King is out of the way now
+            // But white still can't en passant, the opportunity is lost
+            Assert.IsTrue(chessBoard.MovePiece((5, 1), (4, 1)));
+            Assert.IsFalse(board[(5, 5)].AvailableMoves.Contains((4, 6)));
+        }
+
+        /// <summary>
+        /// Tests that the usual rules for moving out of check with the special case of en passant
+        /// </summary>
+        [TestMethod]
+        public void TestEnPassant_MovingOutOfCheck()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            // Black pawn to h6
+            Assert.IsTrue(chessBoard.MovePiece((8, 7), (8, 6)));
+            // White king to e2
+            Assert.IsTrue(chessBoard.MovePiece((5, 1), (5, 2)));
+            // Black pawn to h5
+            Assert.IsTrue(chessBoard.MovePiece((8, 6), (8, 5)));
+            // White king to d3
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (4, 3)));
+            // Black pawn to h4
+            Assert.IsTrue(chessBoard.MovePiece((8, 5), (8, 4)));
+            // White king to c4
+            Assert.IsTrue(chessBoard.MovePiece((4, 3), (3, 4)));
+            // Black pawn to h3
+            Assert.IsTrue(chessBoard.MovePiece((8, 4), (8, 3)));
+            // White pawn to e5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (5, 5)));
+
+            // Black pawn to d5
+            // White king is in check
+            // En passant is certainly... an option
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (4, 5)));
+            Assert.IsTrue(board[(5, 5)].AvailableMoves.Contains((4, 6)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // White pawn to d6
+            // En passant out of check
+            Assert.IsTrue(chessBoard.MovePiece((5, 5), (4, 6)));
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+      
         /// <summary>
         /// Private helper method used for testing which displays all pieces' positions, colors, types, and available moves
         /// </summary>
