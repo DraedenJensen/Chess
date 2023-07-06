@@ -1290,6 +1290,88 @@ namespace ChessModelsTest
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
         }
+
+        /// <summary>
+        /// Tests a basic case for pawn promotion, with the default promotion method which just replaces
+        /// a pawn with a queen
+        /// </summary>
+        [TestMethod]
+        public void TestPromotion_Basic()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            //Black pawn to f5
+            Assert.IsTrue(chessBoard.MovePiece((6, 7), (6, 5)));
+            // White pawn to f5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (6, 5)));
+            // Black pawn to g6
+            Assert.IsTrue(chessBoard.MovePiece((7, 7), (7, 6)));
+            // White pawn to g6
+            Assert.IsTrue(chessBoard.MovePiece((6, 5), (7, 6)));
+            // Black pawn to h5
+            Assert.IsTrue(chessBoard.MovePiece((8, 7), (8, 5)));
+            // White pawn to g7
+            Assert.IsTrue(chessBoard.MovePiece((7, 6), (7, 7)));
+            // Black pawn to h4
+            Assert.IsTrue(chessBoard.MovePiece((8, 5), (8, 4)));
+
+            // White pawn to h8
+            // Promoted to queen
+            Assert.IsTrue(chessBoard.MovePiece((7, 7), (8, 8)));
+            Assert.IsTrue(board[(8, 8)].Type == "queen");
+            Assert.IsTrue(board[(8, 8)].AvailableMoves.Count == 10);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+
+            // Black bishop to g7
+            // Threatens this new queen
+            Assert.IsTrue(chessBoard.MovePiece((6, 8), (7, 7)));
+            Assert.IsTrue(board[(7, 7)].AvailableMoves.Contains((8, 8)));
+            Assert.IsTrue(board[(8, 8)].AvailableMoves.Count == 6);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
+        /// <summary>
+        /// Tests that a promotion can suddenly put a king in check
+        /// </summary>
+        [TestMethod]
+        public void TestPromotion_Check()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e4
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
+            //Black pawn to f5
+            Assert.IsTrue(chessBoard.MovePiece((6, 7), (6, 5)));
+            // White pawn to f5
+            Assert.IsTrue(chessBoard.MovePiece((5, 4), (6, 5)));
+            // Black pawn to g6
+            Assert.IsTrue(chessBoard.MovePiece((7, 7), (7, 6)));
+            // White pawn to g6
+            Assert.IsTrue(chessBoard.MovePiece((6, 5), (7, 6)));
+            // Black bishop to h6
+            Assert.IsTrue(chessBoard.MovePiece((6, 8), (8, 6)));
+            // White pawn to g7
+            Assert.IsTrue(chessBoard.MovePiece((7, 6), (7, 7)));
+            // Black knight to f6
+            Assert.IsTrue(chessBoard.MovePiece((7, 8), (6, 6)));
+
+            // White pawn to g8
+            // Promoted to queen
+            // Black is in check
+            Assert.IsTrue(chessBoard.MovePiece((7, 7), (7, 8)));
+            Assert.IsTrue(board[(8, 8)].AvailableMoves.Count == 1);
+            Assert.IsTrue(board[(8, 6)].AvailableMoves.Count == 1);
+            Assert.IsTrue(board[(6, 6)].AvailableMoves.Count == 1);
+            Assert.IsTrue(board[(5, 8)].AvailableMoves.Count == 0);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
       
         /// <summary>
         /// Private helper method used for testing which displays all pieces' positions, colors, types, and available moves
