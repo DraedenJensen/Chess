@@ -603,6 +603,19 @@ namespace ChessModels
             if (!(GameBoard.ContainsKey((x, y + color)) || y == 8))
             {
                 newMoves.Add((x, y + color));
+                
+                // Check for starting double move
+                if ((color == -1 && y == 7) || (color == 1 && y == 2))
+                {
+                    if (!GameBoard.ContainsKey((x, y + color * 2)))
+                    {
+                        newMoves.Add((x, y + color * 2));
+                    }
+                    else
+                    {
+                        blockedMoves.Add((x, y + color * 2));
+                    }
+                }
             }
             else
             {
@@ -630,18 +643,6 @@ namespace ChessModels
                 else
                 {
                     blockedMoves.Add((x + i, y + color));
-                }
-            }
-
-            // Check for starting double move
-            if ((color == -1 && y == 7) || (color == 1 && y == 2))
-            {
-                if (!GameBoard.ContainsKey((x, y + color * 2)))
-                {
-                    newMoves.Add((x, y + color * 2));
-                } else
-                {
-                    blockedMoves.Add((x, y + color * 2));
                 }
             }
 

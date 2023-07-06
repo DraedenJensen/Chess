@@ -1021,8 +1021,8 @@ namespace ChessModelsTest
             Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
             // Black pawn to e5
             Assert.IsTrue(chessBoard.MovePiece((5, 7), (5, 5)));
-            // White knight to f3
-            Assert.IsTrue(chessBoard.MovePiece((7, 1), (6, 3)));
+            // White knight to h3
+            Assert.IsTrue(chessBoard.MovePiece((7, 1), (8, 3)));
             // Black knight to f6
             Assert.IsTrue(chessBoard.MovePiece((7, 8), (6, 6)));
             // White bishop to c4
@@ -1040,10 +1040,10 @@ namespace ChessModelsTest
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
 
-            // White knight to d4
+            // White pawn to d4
             // This blocks the bishop's line, so the white king can now castle
-            Assert.IsTrue(chessBoard.MovePiece((6, 3), (4, 4)));
-            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 4);
+            Assert.IsTrue(chessBoard.MovePiece((4, 2), (4, 4)));
+            Assert.IsTrue(board[(5, 1)].AvailableMoves.Count == 5);
             Assert.IsTrue(board[(5, 1)].AvailableMoves.Contains((7, 1)));
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
@@ -1390,13 +1390,69 @@ namespace ChessModelsTest
             Assert.IsTrue(chessBoard.MovePiece((7, 2), (7, 4)));
 
             // Black queen to h4
+            // White has no moves
             // Checkmate
             Assert.IsTrue(chessBoard.MovePiece((4, 8), (8, 4)));
             Assert.IsTrue(chessBoard.GameOver);
             PrintAllPiecesMoves(board);
             Debug.WriteLine("");
         }
-      
+
+        /// <summary>
+        /// Tests a... decidedly less basic stalemate setup
+        /// </summary>
+        [TestMethod]
+        public void TestStalemate()
+        {
+            Chessboard chessBoard = new();
+            Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
+
+            // White pawn to e3
+            Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 3)));
+            // Black pawn to a5
+            Assert.IsTrue(chessBoard.MovePiece((1, 7), (1, 5)));
+            // White queen to h5
+            Assert.IsTrue(chessBoard.MovePiece((4, 1), (8, 5)));
+            // Black rook to a6
+            Assert.IsTrue(chessBoard.MovePiece((1, 8), (1, 6)));
+            // White queen to a5
+            Assert.IsTrue(chessBoard.MovePiece((8, 5), (1, 5)));
+            // Black pawn to h5
+            Assert.IsTrue(chessBoard.MovePiece((8, 7), (8, 5)));
+            // White pawn to h4
+            Assert.IsTrue(chessBoard.MovePiece((8, 2), (8, 4)));
+            // Black rook to h6
+            Assert.IsTrue(chessBoard.MovePiece((1, 6), (8, 6)));
+            // White queen to c7
+            Assert.IsTrue(chessBoard.MovePiece((1, 5), (3, 7)));
+            // Black pawn to f6
+            Assert.IsTrue(chessBoard.MovePiece((6, 7), (6, 6)));
+            // White queen to d7
+            Assert.IsTrue(chessBoard.MovePiece((3, 7), (4, 7)));
+            // Black king to f7
+            Assert.IsTrue(chessBoard.MovePiece((5, 8), (6, 7)));
+            // White queen to b7
+            Assert.IsTrue(chessBoard.MovePiece((4, 7), (2, 7)));
+            // Black queen to d3
+            Assert.IsTrue(chessBoard.MovePiece((4, 8), (4, 3)));
+            // White queen to b8
+            Assert.IsTrue(chessBoard.MovePiece((2, 7), (2, 8)));
+            // Black queen to h7
+            Assert.IsTrue(chessBoard.MovePiece((4, 3), (8, 7)));
+            // White queen to c8
+            Assert.IsTrue(chessBoard.MovePiece((2, 8), (3, 8)));
+            // Black king to g6
+            Assert.IsTrue(chessBoard.MovePiece((6, 7), (7, 6)));
+            
+            // White queen to e6
+            // Black is not in check but has no moves
+            // Stalemate
+            Assert.IsTrue(chessBoard.MovePiece((3, 8), (5, 6)));
+            Assert.IsTrue(chessBoard.GameOver);
+            PrintAllPiecesMoves(board);
+            Debug.WriteLine("");
+        }
+
         /// <summary>
         /// Private helper method used for testing which displays all pieces' positions, colors, types, and available moves
         /// </summary>
