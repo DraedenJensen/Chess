@@ -27,10 +27,20 @@ namespace ChessModels
         // Item 2 is the square a capturing pawn would move to
         private (int, (int, int)) enPassant;
 
+        public delegate string PromotionMethod();
+        private PromotionMethod promote;
+
+        /// <summary>
+        /// Default constructor which initializes a chessboard with a promotion method which always returns
+        /// a queen
+        /// </summary>
+        public Chessboard() : this(() => "queen") { }
+
         /// <summary>
         /// Constructor which initializes all pieces and values.
         /// </summary>
-        public Chessboard()
+        /// <param name="promote">Callback method for pawn promotion</param>
+        public Chessboard(PromotionMethod promote)
         {
             GameBoard = new();
             CapturedPieces = new();
@@ -42,6 +52,8 @@ namespace ChessModels
             inCheck = 0;
             attacker = new();
             enPassant = (0, (0, 0));
+
+            this.promote = promote; 
 
             turn = 1;
 
@@ -471,6 +483,11 @@ namespace ChessModels
                 }
                 enPassant = newEnPassant;
 
+                if (piece.Type == "pawn" && (piece.Color == -1 && newPosition.Item2 == 1) || piece.Color == 1 && newPosition.Item2 == 8)
+                {
+                    PromotePawn(newPosition.Item1, newPosition.Item2, piece.Color);
+                }
+
                 return true;
             }
 
@@ -559,12 +576,6 @@ namespace ChessModels
             HashSet<(int, int)> newMoves = new();
             blockedMoves = new();
 
-            //TODO Check for promotion first
-            if ((color == -1 && y == 1) || (color == 1 && y == 8))
-            {
-                return PromotePawn(x, y);
-            }
-
             // Base case
             if (!(GameBoard.ContainsKey((x, y + color)) || y == 8))
             {
@@ -614,11 +625,14 @@ namespace ChessModels
             return newMoves;
         }
 
-
-        private HashSet<(int, int)> PromotePawn(int x, int y)
+        private void PromotePawn(int x, int y, int color)
         {
-            //TODO
-            return new HashSet<(int, int)>();
+            string type = promote();
+
+            ChessPiece piece = new(color, type);
+            GameBoard[(x, y)] = piece;
+
+            UpdatePossibleMoves(x, y, piece);
         }
 
         /// <summary>
@@ -670,7 +684,6 @@ namespace ChessModels
                             blockedMoves.Add((x + j, y + i));
                         }
                     }
-
                 }
             }
 
