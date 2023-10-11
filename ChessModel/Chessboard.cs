@@ -338,7 +338,7 @@ namespace ChessModels
         /// <summary>
         /// Private helper method which updates the potential lines of check of a rook or queen
         /// </summary>
-        public void UpdateCheckLinesStraight(int x, int y, ChessPiece piece)
+        private void UpdateCheckLinesStraight(int x, int y, ChessPiece piece)
         {
             if (piece.Type == "queen" && piece.PotentialLineOfCheck.Item3.Count() > 0)
             {

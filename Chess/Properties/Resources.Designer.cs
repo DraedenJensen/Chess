@@ -133,6 +133,16 @@ namespace ChessClientGUI.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap translucentDot {
+            get {
+                object obj = ResourceManager.GetObject("translucentDot", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap white_bishop {
             get {
                 object obj = ResourceManager.GetObject("white_bishop", resourceCulture);
