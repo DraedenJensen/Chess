@@ -5,16 +5,14 @@ VisualStudioVersion = 17.4.33403.182
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessClientGUI", "Chess\ChessClientGUI.csproj", "{5133AD7A-DBF7-418E-BF6A-330123979A2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessServer", "ChessServer\ChessServer.csproj", "{AB868AF7-308F-4923-8BAC-7038CB049169}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessModels", "ChessModel\ChessModels.csproj", "{0789D098-711C-4272-BBF2-64C1398EA605}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessModels", "ChessModel\ChessModels.csproj", "{0789D098-711C-4272-BBF2-64C1398EA605}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{314C9027-EBC7-4B18-A8F5-B899BCE59F6E}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChessModelsTest", "ChessModelTest\ChessModelsTest.csproj", "{0A87DABD-5397-4B5C-B324-071ECD3C58A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChessModelsTest", "ChessModelTest\ChessModelsTest.csproj", "{0A87DABD-5397-4B5C-B324-071ECD3C58A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,10 +24,6 @@ Global
 		{5133AD7A-DBF7-418E-BF6A-330123979A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5133AD7A-DBF7-418E-BF6A-330123979A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5133AD7A-DBF7-418E-BF6A-330123979A2D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AB868AF7-308F-4923-8BAC-7038CB049169}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AB868AF7-308F-4923-8BAC-7038CB049169}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AB868AF7-308F-4923-8BAC-7038CB049169}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AB868AF7-308F-4923-8BAC-7038CB049169}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0789D098-711C-4272-BBF2-64C1398EA605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0789D098-711C-4272-BBF2-64C1398EA605}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0789D098-711C-4272-BBF2-64C1398EA605}.Release|Any CPU.ActiveCfg = Release|Any CPU
