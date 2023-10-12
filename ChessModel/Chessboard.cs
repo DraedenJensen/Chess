@@ -10,7 +10,7 @@ namespace ChessModels
     public class Chessboard
     {
         public Dictionary<(int, int), ChessPiece> GameBoard { get; protected set; }
-        public HashSet<ChessPiece> CapturedPieces { get; protected set; }
+        public List<ChessPiece> CapturedPieces { get; protected set; }
 
         // Tracks the color (white = 1, black = -1) in check (0 if no one is in check)
         private int inCheck;

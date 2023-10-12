@@ -7,6 +7,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,12 +26,16 @@ namespace ChessClientGUI
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
         Label turnLabel;
-        Stopwatch stopwatch;
-        TextBox moveHistory;
+        Label timeLabel;
+        Label moveHistory;
+        PictureBox line;
+        Stopwatch timer;
 
         public ChessGame()
         {
             InitializeComponent();
+
+            InitializeHiddenComponents();
 
             for (int row = 8; row >= 1; row--)
             {
@@ -84,7 +89,34 @@ namespace ChessClientGUI
                 if (potentialMoves.Contains(sender))
                 {
                     board.MovePiece(pieceSelected, selectedCoordinates);
+                    if (board.CapturedPieces.Count > blackCaptures.Controls.Count + whiteCaptures.Controls.Count)
+                    {
+                        PictureBox box = new();
+                        box.Size = new Size(60, 60);
+                        box.BackgroundImageLayout = ImageLayout.Stretch;
+
+                        ChessPiece newlyCaptured = board.CapturedPieces[board.CapturedPieces.Count - 1];
+
+                        if (newlyCaptured.Color == 1)
+                        {
+                            blackCaptures.Controls.Add(box);
+                        }
+                        else
+                        {
+                            whiteCaptures.Controls.Add(box);
+                        }
+
+                        ShowPieceHelper(box, newlyCaptured);
+                    }
                     turnColor *= -1;
+                    if (turnColor == 1)
+                    {
+                        turnLabel.Text = "White's turn";
+                    }
+                    else
+                    {
+                        turnLabel.Text = "Black's turn";
+                    }
                     pieceSelected = (0, 0);
                     potentialMoves.Clear();
                     return;
@@ -144,10 +176,8 @@ namespace ChessClientGUI
             ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]).BackgroundImage = null;
         }
 
-        private void ShowPieceOnSquare((int, int) square, ChessPiece piece)
+        private void ShowPieceHelper(PictureBox box, ChessPiece piece)
         {
-            PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
-
             if (piece.Color == 1)
             {
                 switch (piece.Type)
@@ -198,6 +228,82 @@ namespace ChessClientGUI
             }
         }
 
+        private void ShowPieceOnSquare((int, int) square, ChessPiece piece)
+        {
+            PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
+            ShowPieceHelper(box, piece);
+        }
+
+        private void InitializeHiddenComponents()
+        {
+            blackCaptures = new();
+            whiteCaptures = new();
+
+            blackCaptures.Size = new Size(1000, 63);
+            blackCaptures.Padding = new Padding(0);
+            blackCaptures.Visible = false;
+
+            whiteCaptures.Size = new Size(1000, 63);
+            whiteCaptures.Padding = new Padding(0);
+            whiteCaptures.Visible = false;
+
+            timeLabel = new();
+            line = new();
+            turnLabel = new();
+            moveHistory = new();
+
+            timeLabel.Size = new Size(400, 100);
+            timeLabel.TextAlign = ContentAlignment.MiddleCenter;
+            timeLabel.Font = new Font("Bell MT", 48F, GraphicsUnit.Point);
+            timeLabel.Visible = false;
+
+            timer = new();
+            timer.Start();
+            Thread thread = new(UpdateElapsedTime);
+            thread.Start();
+
+            line.Size = new Size(400, 20);
+            line.BackgroundImage = ChessClientGUI.Properties.Resources.line;
+            line.BackgroundImageLayout = ImageLayout.Stretch;
+            line.Visible = false;
+
+            turnLabel.Size = new Size(400, 100);
+            turnLabel.TextAlign = ContentAlignment.MiddleCenter;
+            turnLabel.Font = new Font("Imprint MT Shadow", 36F, GraphicsUnit.Point); 
+            turnLabel.Text = "White's turn";
+            turnLabel.Visible = false;
+
+            moveHistory.Size = new Size(400, 500);
+            moveHistory.BackColor = Color.White;
+            moveHistory.Visible = false;
+
+            Controls.Add(blackCaptures);
+            Controls.Add(whiteCaptures);
+            Controls.Add(timeLabel);
+            Controls.Add(line);
+            Controls.Add(turnLabel);
+            Controls.Add(moveHistory);
+        }
+
+        private void UpdateElapsedTime()
+        {
+            while (true)
+            {
+                try
+                {
+                    Invoke(new Action(() =>
+                    {
+                        long elapsed = timer.ElapsedMilliseconds;
+                        int seconds = (int)(elapsed / 1000) % 60;
+                        int minutes = (int)(elapsed / 60000) % 60;
+                        int hours = (int)(elapsed / 3600000);
+                        timeLabel.Text = $"{hours.ToString("D2")}:{minutes.ToString("D2")}:{seconds.ToString("D2")}"; 
+                    }));
+                }
+                catch (Exception ex) { }
+            }
+        }
+
         private void ResizeLayout(object sender, EventArgs e)
         {
             Form form = (Form)sender;
@@ -205,10 +311,32 @@ namespace ChessClientGUI
             if (form.Size.Width > 900)
             {
                 boardBox.Location = new Point(100, form.Height/ 2 - 450);
+
+                blackCaptures.Location = new Point(900, boardBox.Location.Y);
+                whiteCaptures.Location = new Point(900, boardBox.Location.Y + 740);
+                turnLabel.Location = new Point(950, boardBox.Location.Y + 275);
+                line.Location = new Point(950, turnLabel.Location.Y + 115);
+                lock (timeLabel)
+                {
+                    timeLabel.Location = new Point(950, turnLabel.Location.Y + 150);
+                }
+                moveHistory.Location = new Point(1400, boardBox.Location.Y + 150);
+
+                blackCaptures.Visible = true;
+                whiteCaptures.Visible = true;
+                turnLabel.Visible = true;
+                line.Visible = true;
+                lock (timeLabel)
+                {
+                    timeLabel.Visible = true;
+                }
+                moveHistory.Visible = true;
             }
             else
             {
                 boardBox.Location = new Point(0, 1);
+                blackCaptures.Visible = false;
+                whiteCaptures.Visible = false;
             }
         }
     }
