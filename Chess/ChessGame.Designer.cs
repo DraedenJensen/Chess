@@ -37,9 +37,10 @@ namespace ChessClientGUI
             // boardBox
             // 
             boardBox.BorderStyle = BorderStyle.FixedSingle;
-            boardBox.Location = new Point(141, 126);
+            boardBox.Dock = DockStyle.Fill;
+            boardBox.Location = new Point(0, 0);
             boardBox.Name = "boardBox";
-            boardBox.Size = new Size(802, 802);
+            boardBox.Size = new Size(832, 803);
             boardBox.TabIndex = 0;
             // 
             // ChessGame
@@ -48,7 +49,7 @@ namespace ChessClientGUI
             AutoScaleMode = AutoScaleMode.Font;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Gainsboro;
-            ClientSize = new Size(1082, 1053);
+            ClientSize = new Size(832, 803);
             Controls.Add(boardBox);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "ChessGame";

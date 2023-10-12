@@ -47,14 +47,11 @@ namespace ChessClientGUI
                     boardBox.Controls.Add(box);
                 }
             }
-            
 
-            board = new();
+            board = new(ShowPieceOnSquare, RemovePieceFromSquare, Check, Promotion, Checkmate, Stalemate);
             turnColor = 1;
             pieceSelected = (0, 0);
             potentialMoves = new();
-
-            InitializeBoard();
         }
 
         private void squareSelected(object sender, EventArgs e)
@@ -72,15 +69,13 @@ namespace ChessClientGUI
             {
                 box.Image = null;
             }
-            
+
             // If we've already selected a piece, check if the new selection is a valid move for that piece
             if (pieceSelected != (0, 0))
             {
                 if (potentialMoves.Contains(sender))
                 {
                     board.MovePiece(pieceSelected, selectedCoordinates);
-                    ((PictureBox)boardBox.Controls.Find(pieceSelected.Item1.ToString() + pieceSelected.Item2.ToString(), true)[0]).BackgroundImage = null;
-                    PlacePieceOnSquare(((PictureBox)boardBox.Controls.Find(selectedCoordinates.Item1.ToString() + selectedCoordinates.Item2.ToString(), true)[0]), board.GameBoard[selectedCoordinates]);
                     turnColor *= -1;
                     pieceSelected = (0, 0);
                     potentialMoves.Clear();
@@ -105,7 +100,7 @@ namespace ChessClientGUI
             {
                 return;
             }
-            
+
             // If we make it past all those checks, we can finally update the piece, and keep track of the new pictureBoxes with dots
             pieceSelected = selectedCoordinates;
             foreach ((int, int) potentialMove in piece.AvailableMoves)
@@ -115,9 +110,36 @@ namespace ChessClientGUI
                 potentialMoves.Add(box);
             }
         }
-        
-        private void PlacePieceOnSquare(PictureBox box, ChessPiece piece) 
+
+        private void Check()
         {
+
+        }
+
+        private string Promotion()
+        {
+            return "queen";
+        }
+
+        private void Checkmate(int color)
+        {
+
+        }
+
+        private void Stalemate()
+        {
+
+        }
+
+        private void RemovePieceFromSquare((int, int) square)
+        {
+            ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]).BackgroundImage = null;
+        }
+
+        private void ShowPieceOnSquare((int, int) square, ChessPiece piece)
+        {
+            PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
+
             if (piece.Color == 1)
             {
                 switch (piece.Type)
@@ -165,17 +187,6 @@ namespace ChessClientGUI
                         box.BackgroundImage = ChessClientGUI.Properties.Resources.black_pawn;
                         break;
                 }
-            }
-        }
-
-        private void InitializeBoard()
-        {
-            foreach ((int, int) square in board.GameBoard.Keys)
-            {
-                PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
-                ChessPiece piece = board.GameBoard[square];
-
-                PlacePieceOnSquare(box, piece);
             }
         }
     }

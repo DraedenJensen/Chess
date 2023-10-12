@@ -29,18 +29,28 @@ namespace ChessModels
         // Item 2 is the square a capturing pawn would move to
         private (int, (int, int)) enPassant;
 
+        // These delegates are used for the GUI implementation -- we need an outside source to define behavior for these event
+        public delegate void PlacePieceMethod((int, int) square, ChessPiece piece);
+        public delegate void RemovePieceMethod((int, int) square);
+        public delegate void CheckMethod();
+
         public delegate string PromotionMethod();
         public delegate void CheckmateMethod(int color);
         public delegate void StalemateMethod();
+
+        private PlacePieceMethod placePiece;
+        private RemovePieceMethod removePiece;
+        private CheckMethod check;
 
         private PromotionMethod promote;
         private CheckmateMethod checkmate;
         private StalemateMethod stalemate;
 
         /// <summary>
-        /// Default constructor which initializes a chessboard with generic promotion and game over methods
+        /// Default constructor which initializes a chessboard with generic delegate methods, used for model testing
         /// </summary>
-        public Chessboard() : this (
+        public Chessboard() : this(
+            (x, y) => { }, (x) => { }, () => { },
             () => "queen", 
             (x) => { 
                 switch (x) { 
@@ -59,7 +69,8 @@ namespace ChessModels
         /// Constructor which initializes all pieces and values.
         /// </summary>
         /// <param name="promote">Callback method for pawn promotion</param>
-        public Chessboard(PromotionMethod promote, CheckmateMethod checkmate, StalemateMethod stalemate)
+        public Chessboard(PlacePieceMethod placePiece, RemovePieceMethod removePiece, CheckMethod check, 
+            PromotionMethod promote, CheckmateMethod checkmate, StalemateMethod stalemate)
         {
             GameBoard = new();
             CapturedPieces = new();
@@ -71,6 +82,10 @@ namespace ChessModels
             inCheck = 0;
             attacker = new();
             enPassant = (0, (0, 0));
+
+            this.placePiece = placePiece;
+            this.removePiece = removePiece;
+            this.check = check;
 
             this.promote = promote; 
             this.checkmate = checkmate;
@@ -88,6 +103,9 @@ namespace ChessModels
 
                 GameBoard.Add((i + 1, 1), white);
                 GameBoard.Add((i + 1, 8), black);
+
+                placePiece((i + 1, 1), white);
+                placePiece((i + 1, 8), black);
             }
 
             // Fill pawns
@@ -98,6 +116,9 @@ namespace ChessModels
 
                 GameBoard.Add((i, 2), whitePawn);
                 GameBoard.Add((i, 7), blackPawn);
+
+                placePiece((i, 2), whitePawn);
+                placePiece((i, 7), blackPawn);
             }
 
             foreach (var entry in GameBoard)
@@ -430,6 +451,7 @@ namespace ChessModels
             if (piece.AvailableMoves.Contains(newPosition))
             {
                 GameBoard.Remove(oldPosition);
+                removePiece(oldPosition);
                 if (piece.Type == "king")
                 {
                     switch (piece.Color)
@@ -463,6 +485,7 @@ namespace ChessModels
                 {
                     CapturedPieces.Add(GameBoard[(newPosition.Item1, newPosition.Item2 + enPassant.Item1)]);
                     GameBoard.Remove((newPosition.Item1, newPosition.Item2 + enPassant.Item1));
+                    removePiece((newPosition.Item1, newPosition.Item2 + enPassant.Item1));
                     GameBoard.Add(newPosition, piece);
                 }
                 else
@@ -511,6 +534,7 @@ namespace ChessModels
                     PromotePawn(newPosition.Item1, newPosition.Item2, piece.Color);
                 }
 
+                placePiece(newPosition, piece);
                 return true;
             }
 
