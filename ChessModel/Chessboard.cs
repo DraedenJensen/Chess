@@ -21,6 +21,7 @@ namespace ChessModels
         private Dictionary<int, (int, int)> enemyKingLocations;
 
         private int turn;
+        private bool castling;
 
         public bool GameOver { get; protected set; }
 
@@ -32,7 +33,8 @@ namespace ChessModels
         // These delegates are used for the GUI implementation -- we need an outside source to define behavior for these event
         public delegate void PlacePieceMethod((int, int) square, ChessPiece piece);
         public delegate void RemovePieceMethod((int, int) square);
-        public delegate void CheckMethod();
+        public delegate void CheckMethod(int check);
+        public delegate void UseNotationMethod(string notation);
 
         public delegate string PromotionMethod();
         public delegate void CheckmateMethod(int color);
@@ -41,6 +43,7 @@ namespace ChessModels
         private PlacePieceMethod placePiece;
         private RemovePieceMethod removePiece;
         private CheckMethod check;
+        private UseNotationMethod useNotation;
 
         private PromotionMethod promote;
         private CheckmateMethod checkmate;
@@ -50,7 +53,7 @@ namespace ChessModels
         /// Default constructor which initializes a chessboard with generic delegate methods, used for model testing
         /// </summary>
         public Chessboard() : this(
-            (x, y) => { }, (x) => { }, () => { },
+            (x, y) => { }, (x) => { }, (x) => { }, (x) => { },
             () => "queen", 
             (x) => { 
                 switch (x) { 
@@ -69,7 +72,7 @@ namespace ChessModels
         /// Constructor which initializes all pieces and values.
         /// </summary>
         /// <param name="promote">Callback method for pawn promotion</param>
-        public Chessboard(PlacePieceMethod placePiece, RemovePieceMethod removePiece, CheckMethod check, 
+        public Chessboard(PlacePieceMethod placePiece, RemovePieceMethod removePiece, CheckMethod check, UseNotationMethod useNotation,
             PromotionMethod promote, CheckmateMethod checkmate, StalemateMethod stalemate)
         {
             GameBoard = new();
@@ -86,12 +89,14 @@ namespace ChessModels
             this.placePiece = placePiece;
             this.removePiece = removePiece;
             this.check = check;
+            this.useNotation = useNotation;
 
             this.promote = promote; 
             this.checkmate = checkmate;
             this.stalemate = stalemate;
 
             turn = 1;
+            castling = false;
             GameOver = false;
 
             // Fill back row pieces
@@ -132,16 +137,17 @@ namespace ChessModels
         /// </summary>
         /// <param name="oldPosition">Current position of the piece to move</param>
         /// <param name="newPosition">New position to move this piece to</param>
-        /// <returns>True if the move was successful, false otherwise</returns>
+        /// <returns>Algebraic notation for the move, or an empty string if the move was unsuccessful</returns>
         public bool MovePiece((int, int) oldPosition, (int, int) newPosition)
         {
             if (GameOver)
             {
                 return false;
             }
-            if (UpdateCoordinates(oldPosition, newPosition))
+            if (UpdateCoordinates(oldPosition, newPosition, out string notation))
             {
                 inCheck = 0;
+                check(0);
                 attacker.Clear();
 
                 foreach (ChessPiece piece in GameBoard.Values)
@@ -304,7 +310,17 @@ namespace ChessModels
                         catch (IndexOutOfRangeException) { }
                     }
                 }
-                
+
+                if (inCheck != 0)
+                {
+                    notation += '+';
+                }
+                if (!castling)
+                {
+                    useNotation(notation);
+                }
+                castling = false;
+
                 CheckForCheck();
                 CheckForMate();
 
@@ -434,7 +450,7 @@ namespace ChessModels
         /// True if the move is allowed, and was completed. Otherwise, nothing was changed on the board, so the method 
         /// returns false
         /// </returns>
-        private bool UpdateCoordinates((int, int) oldPosition, (int, int) newPosition)
+        private bool UpdateCoordinates((int, int) oldPosition, (int, int) newPosition, out string notation)
         {
             ChessPiece piece;
             (int, (int, int)) newEnPassant = (0, (0, 0));
@@ -445,6 +461,7 @@ namespace ChessModels
             }
             catch (KeyNotFoundException)
             {
+                notation = "";
                 return false;
             }
 
@@ -452,6 +469,52 @@ namespace ChessModels
             {
                 GameBoard.Remove(oldPosition);
                 removePiece(oldPosition);
+
+                notation = "";
+                string suffix = "";
+                switch (piece.Type)
+                {
+                    case "king":
+                        notation += 'K';
+                        break;
+                    case "queen":
+                        notation += 'Q';
+                        break;
+                    case "rook":
+                        notation += 'R';
+                        break;
+                    case "bishop":
+                        notation += 'B';
+                        break;
+                    case "knight":
+                        notation += 'N';
+                        break;
+                }
+                if (piece.Type != "pawn")
+                {
+                    foreach (var entry in GameBoard)
+                    {
+                        if (entry.Value.Type == piece.Type && entry.Value.Color == piece.Color)
+                        {
+                            if (entry.Value.AvailableMoves.Contains(newPosition))
+                            {
+                                if (entry.Key.Item1 != oldPosition.Item1)
+                                {
+                                    notation += (char)('a' + oldPosition.Item1 - 1);
+                                }
+                                else if (entry.Key.Item2 != oldPosition.Item2)
+                                {
+                                    notation += oldPosition.Item2;
+                                }
+                                else
+                                {
+                                    notation += (char)('a' + oldPosition.Item1 - 1) + oldPosition.Item2;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (piece.Type == "king")
                 {
                     switch (piece.Color)
@@ -480,6 +543,11 @@ namespace ChessModels
                 {
                     CapturedPieces.Add(GameBoard[newPosition]);
                     GameBoard[newPosition] = piece;
+                    if (piece.Type == "pawn")
+                    {
+                        notation += (char)('a' + oldPosition.Item1 - 1);
+                    }
+                    notation += 'x';
                 }
                 else if (piece.Type == "pawn" && enPassant.Item1 != piece.Color && enPassant.Item2 == newPosition)
                 {
@@ -487,6 +555,9 @@ namespace ChessModels
                     GameBoard.Remove((newPosition.Item1, newPosition.Item2 + enPassant.Item1));
                     removePiece((newPosition.Item1, newPosition.Item2 + enPassant.Item1));
                     GameBoard.Add(newPosition, piece);
+                    notation += (char)('a' + oldPosition.Item1 - 1);
+                    notation += 'x';
+                    suffix += " e.p.";
                 }
                 else
                 {
@@ -497,23 +568,35 @@ namespace ChessModels
                     {
                         if (newPosition == (3, 1))
                         {
+                            notation = "0-0-0";
                             GameBoard[(1, 1)].AvailableMoves.Add((4, 1));
+                            castling = true;
                             MovePiece((1, 1), (4, 1));
+                            castling = true;
                         }
                         else if (newPosition == (7, 1))
                         {
+                            notation = "0-0";
                             GameBoard[(8, 1)].AvailableMoves.Add((6, 1));
+                            castling = true;
                             MovePiece((8, 1), (6, 1));
+                            castling = true;
                         }
                         else if (newPosition == (3, 8))
                         {
+                            notation = "0-0-0";
                             GameBoard[(1, 8)].AvailableMoves.Add((4, 8));
+                            castling = true;
                             MovePiece((1, 8), (4, 8));
+                            castling = true;
                         }
                         else if (newPosition == (7, 8))
                         {
+                            notation = "0-0";
                             GameBoard[(8, 8)].AvailableMoves.Add((6, 8));
+                            castling = true;
                             MovePiece((8, 8), (6, 8));
+                            castling = true;
                         }
                     }
                 }
@@ -529,15 +612,49 @@ namespace ChessModels
                 }
                 enPassant = newEnPassant;
 
-                if (piece.Type == "pawn" && (piece.Color == -1 && newPosition.Item2 == 1) || piece.Color == 1 && newPosition.Item2 == 8)
+                if (piece.Type == "pawn" && ((piece.Color == -1 && newPosition.Item2 == 1) || (piece.Color == 1 && newPosition.Item2 == 8)))
                 {
-                    PromotePawn(newPosition.Item1, newPosition.Item2, piece.Color);
+                    string type = promote();
+                    switch (type)
+                    {
+                        case "king":
+                            suffix += 'K';
+                            break;
+                        case "queen":
+                            suffix += 'Q';
+                            break;
+                        case "rook":
+                            suffix += 'R';
+                            break;
+                        case "bishop":
+                            suffix += 'B';
+                            break;
+                        case "knight":
+                            suffix += 'N';
+                            break;
+                    }
+                    PromotePawn(newPosition.Item1, newPosition.Item2, piece.Color, type);
                 }
 
+                if (!castling)
+                {
+                    notation += (char)('a' + newPosition.Item1 - 1);
+                    notation += newPosition.Item2.ToString();
+                    notation += suffix;
+                }
+                else
+                {
+                    if (piece.Type == "king")
+                    {
+                        castling = false;
+                    }
+                }
                 placePiece(newPosition, piece);
+
                 return true;
             }
 
+            notation = "";
             return false;
         }
 
@@ -603,6 +720,7 @@ namespace ChessModels
                         inCheck = -1;
                         break;
                 }
+                check(1);
             }
 
             piece.AvailableMoves = availableMoves;
@@ -673,10 +791,8 @@ namespace ChessModels
             return newMoves;
         }
 
-        private void PromotePawn(int x, int y, int color)
+        private void PromotePawn(int x, int y, int color, string type)
         {
-            string type = promote();
-
             ChessPiece piece = new(color, type);
             GameBoard[(x, y)] = piece;
 

@@ -19,15 +19,17 @@ namespace ChessClientGUI
     {
         private Chessboard board;
         private int turnColor;
+        int turn;
         private (int, int) pieceSelected;
         private List<PictureBox> potentialMoves;
 
         // Potential elements to show only in full-screen. Come back here
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
+        Label checkLabel;
         Label turnLabel;
         Label timeLabel;
-        Label moveHistory;
+        TextBox moveHistory;
         PictureBox line;
         Stopwatch timer;
 
@@ -61,8 +63,9 @@ namespace ChessClientGUI
                 }
             }
 
-            board = new(ShowPieceOnSquare, RemovePieceFromSquare, Check, Promotion, Checkmate, Stalemate);
+            board = new(ShowPieceOnSquare, RemovePieceFromSquare, Check, PrintMove, Promotion, Checkmate, Stalemate);
             turnColor = 1;
+            turn = 1;
             pieceSelected = (0, 0);
             potentialMoves = new();
         }
@@ -112,6 +115,7 @@ namespace ChessClientGUI
                     if (turnColor == 1)
                     {
                         turnLabel.Text = "White's turn";
+                        turn++;
                     }
                     else
                     {
@@ -151,9 +155,40 @@ namespace ChessClientGUI
             }
         }
 
-        private void Check()
+        private void Check(int check)
         {
+            if (check == 0)
+            {
+                checkLabel.Text = "";
+            }
+            else
+            {
+                checkLabel.Text = "(Check)";
+            }
+        }
 
+        private void PrintMove(string notation)
+        {
+            if (turnColor == 1)
+            {
+                if (turn < 10)
+                {
+                    moveHistory.Text += $"{turn}.          {notation}";
+                }
+                else
+                {
+                    moveHistory.Text += $"{turn}.         {notation}";
+                }
+                for (int i = 0; i < 14 - notation.Length; i++)
+                {
+                    moveHistory.Text += ' ';
+                }
+            }
+            else
+            {
+                moveHistory.Text += $"{notation}";
+                moveHistory.AppendText(Environment.NewLine);
+            }
         }
 
         private string Promotion()
@@ -251,6 +286,7 @@ namespace ChessClientGUI
             line = new();
             turnLabel = new();
             moveHistory = new();
+            checkLabel = new();
 
             timeLabel.Size = new Size(400, 100);
             timeLabel.TextAlign = ContentAlignment.MiddleCenter;
@@ -273,8 +309,19 @@ namespace ChessClientGUI
             turnLabel.Text = "White's turn";
             turnLabel.Visible = false;
 
-            moveHistory.Size = new Size(400, 500);
-            moveHistory.BackColor = Color.White;
+            checkLabel.Size = new Size(400, 75);
+            checkLabel.TextAlign = ContentAlignment.MiddleCenter;
+            checkLabel.Font = new Font("Imprint MT Shadow", 15F, GraphicsUnit.Point);
+            checkLabel.Visible = false;
+
+            moveHistory.BorderStyle = BorderStyle.FixedSingle;
+            moveHistory.Size = new Size(300, 500);
+            moveHistory.BackColor = Color.DarkGray;
+            moveHistory.Padding = new(5);
+            moveHistory.Font = new Font("Bell MT", 15F, GraphicsUnit.Point);
+            moveHistory.Multiline = true;
+            moveHistory.ReadOnly = true;
+            moveHistory.ScrollBars = ScrollBars.Vertical;
             moveHistory.Visible = false;
 
             Controls.Add(blackCaptures);
@@ -283,6 +330,7 @@ namespace ChessClientGUI
             Controls.Add(line);
             Controls.Add(turnLabel);
             Controls.Add(moveHistory);
+            Controls.Add(checkLabel);
         }
 
         private void UpdateElapsedTime()
@@ -321,6 +369,7 @@ namespace ChessClientGUI
                     timeLabel.Location = new Point(950, turnLabel.Location.Y + 150);
                 }
                 moveHistory.Location = new Point(1400, boardBox.Location.Y + 150);
+                checkLabel.Location = new Point(950, turnLabel.Location.Y - 50);
 
                 blackCaptures.Visible = true;
                 whiteCaptures.Visible = true;
@@ -331,6 +380,7 @@ namespace ChessClientGUI
                     timeLabel.Visible = true;
                 }
                 moveHistory.Visible = true;
+                checkLabel.Visible = true;
             }
             else
             {

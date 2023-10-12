@@ -181,7 +181,7 @@ namespace ChessModelsTest
         {
             Chessboard chessBoard = new();
             Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
-            HashSet<ChessPiece> captured = chessBoard.CapturedPieces;
+            List<ChessPiece> captured = chessBoard.CapturedPieces;
 
             // White pawn to e4
             Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
@@ -226,7 +226,7 @@ namespace ChessModelsTest
         {
             Chessboard chessBoard = new();
             Dictionary<(int, int), ChessPiece> board = chessBoard.GameBoard;
-            HashSet<ChessPiece> captured = chessBoard.CapturedPieces;
+            List<ChessPiece> captured = chessBoard.CapturedPieces;
 
             // White pawn to e4
             Assert.IsTrue(chessBoard.MovePiece((5, 2), (5, 4)));
