@@ -36,7 +36,6 @@ namespace ChessClientGUI
             // 
             // boardBox
             // 
-            boardBox.Anchor = AnchorStyles.None;
             boardBox.BorderStyle = BorderStyle.FixedSingle;
             boardBox.Location = new Point(0, 1);
             boardBox.Name = "boardBox";
@@ -54,6 +53,7 @@ namespace ChessClientGUI
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "ChessGame";
             Text = "ChessGame";
+            SizeChanged += ResizeLayout;
             ResumeLayout(false);
         }
 

@@ -20,6 +20,14 @@ namespace ChessClientGUI
         private int turnColor;
         private (int, int) pieceSelected;
         private List<PictureBox> potentialMoves;
+
+        // Potential elements to show only in full-screen. Come back here
+        FlowLayoutPanel blackCaptures;
+        FlowLayoutPanel whiteCaptures;
+        Label turnLabel;
+        Stopwatch stopwatch;
+        TextBox moveHistory;
+
         public ChessGame()
         {
             InitializeComponent();
@@ -187,6 +195,20 @@ namespace ChessClientGUI
                         box.BackgroundImage = ChessClientGUI.Properties.Resources.black_pawn;
                         break;
                 }
+            }
+        }
+
+        private void ResizeLayout(object sender, EventArgs e)
+        {
+            Form form = (Form)sender;
+
+            if (form.Size.Width > 900)
+            {
+                boardBox.Location = new Point(100, form.Height/ 2 - 450);
+            }
+            else
+            {
+                boardBox.Location = new Point(0, 1);
             }
         }
     }
