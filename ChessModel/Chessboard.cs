@@ -322,7 +322,7 @@ namespace ChessModels
                 castling = false;
 
                 CheckForCheck();
-                CheckForMate();
+                CheckForMate(GameBoard[newPosition].Color * -1);
 
                 return true;
             }
@@ -1095,6 +1095,9 @@ namespace ChessModels
             return newMoves;
         }
 
+        /// <summary>
+        /// Check if a move places the opposing color in check
+        /// </summary>
         private void CheckForCheck()
         {
             if (inCheck != 0)
@@ -1134,35 +1137,50 @@ namespace ChessModels
             }
         }
 
-        private void CheckForMate()
+        /// <summary>
+        /// Check if a move ends the game
+        /// </summary>
+        /// <param name="color">Opposing color of whoever made the move</param>
+        private void CheckForMate(int color)
         {
-            for (int i = -1; i < 2; i += 2)
+            bool hasMoves = false;
+            bool onlyKings = true;
+            foreach (var entry in GameBoard)
             {
-                bool hasMoves = false;
-                foreach (var entry in GameBoard)
+                if (entry.Value.Type != "king")
                 {
-                    if (entry.Value.Color == i)
+                    onlyKings = false;
+                    break;
+                }
+            }
+            foreach (var entry in GameBoard)
+            {
+                if (entry.Value.Color == color)
+                {
+                    if (entry.Value.AvailableMoves.Count > 0)
                     {
-                        if (entry.Value.AvailableMoves.Count > 0)
-                        {
-                            hasMoves = true;
-                            break;
-                        }
+                        hasMoves = true;
+                        break;
                     }
                 }
+            }
 
-                if (!hasMoves)
+            if (onlyKings)
+            {
+                stalemate();
+            }
+
+            if (!hasMoves)
+            {
+                if (inCheck == color)
                 {
-                    if (inCheck == i)
-                    {
-                        checkmate(i);
-                        GameOver = true;
-                    }
-                    else
-                    {
-                        stalemate();
-                        GameOver = true;
-                    }
+                    checkmate(color);
+                    GameOver = true;
+                }
+                else
+                {
+                    stalemate();
+                    GameOver = true;
                 }
             }
             return;

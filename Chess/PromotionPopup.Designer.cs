@@ -41,7 +41,7 @@
             label1.Anchor = AnchorStyles.None;
             label1.AutoSize = true;
             label1.Font = new Font("Bell MT", 24F, FontStyle.Regular, GraphicsUnit.Point);
-            label1.Location = new Point(75, 43);
+            label1.Location = new Point(75, 54);
             label1.Name = "label1";
             label1.Size = new Size(650, 46);
             label1.TabIndex = 0;
@@ -88,7 +88,7 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.LightGray;
-            ClientSize = new Size(800, 334);
+            ClientSize = new Size(802, 333);
             ControlBox = false;
             Controls.Add(knight);
             Controls.Add(rook);

@@ -203,15 +203,14 @@ namespace ChessClientGUI
 
         private void Checkmate(int color)
         {
-            // TODO obviously
-            // Ask if the user wants to play again, return to main menu, or quit
-            // Should be pretty straightforward, use a popup just like promotion
-            checkLabel.Text = "A color has won";
+            GameOverPopup checkmate = new("Checkmate!", color, this);
+            checkmate.ShowDialog();
         }
 
         private void Stalemate()
         {
-
+            GameOverPopup stalemate = new("Stalemate!", 0, this);
+            stalemate.ShowDialog();
         }
 
         private void RemovePieceFromSquare((int, int) square)
