@@ -52,7 +52,7 @@ namespace ChessClientGUI
             Controls.Add(boardBox);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "ChessGame";
-            Text = "ChessGame";
+            Text = "Chess";
             SizeChanged += ResizeLayout;
             ResumeLayout(false);
         }

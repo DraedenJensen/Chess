@@ -36,7 +36,7 @@ namespace ChessModels
         public delegate void CheckMethod(int check);
         public delegate void UseNotationMethod(string notation);
 
-        public delegate string PromotionMethod();
+        public delegate string PromotionMethod(int color);
         public delegate void CheckmateMethod(int color);
         public delegate void StalemateMethod();
 
@@ -54,7 +54,7 @@ namespace ChessModels
         /// </summary>
         public Chessboard() : this(
             (x, y) => { }, (x) => { }, (x) => { }, (x) => { },
-            () => "queen", 
+            (x) => "queen", 
             (x) => { 
                 switch (x) { 
                     case 1: 
@@ -508,7 +508,8 @@ namespace ChessModels
                                 }
                                 else
                                 {
-                                    notation += (char)('a' + oldPosition.Item1 - 1) + oldPosition.Item2;
+                                    notation += (char)('a' + oldPosition.Item1 - 1);
+                                    notation += oldPosition.Item2;
                                 }
                             }
                         }
@@ -614,7 +615,7 @@ namespace ChessModels
 
                 if (piece.Type == "pawn" && ((piece.Color == -1 && newPosition.Item2 == 1) || (piece.Color == 1 && newPosition.Item2 == 8)))
                 {
-                    string type = promote();
+                    string type = promote(piece.Color);
                     switch (type)
                     {
                         case "king":
@@ -649,7 +650,7 @@ namespace ChessModels
                         castling = false;
                     }
                 }
-                placePiece(newPosition, piece);
+                placePiece(newPosition, GameBoard[(newPosition)]);
 
                 return true;
             }
@@ -796,6 +797,7 @@ namespace ChessModels
             ChessPiece piece = new(color, type);
             GameBoard[(x, y)] = piece;
 
+            placePiece((x, y), piece);
             UpdatePossibleMoves(x, y, piece);
         }
 

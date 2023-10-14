@@ -173,32 +173,40 @@ namespace ChessClientGUI
             {
                 if (turn < 10)
                 {
-                    moveHistory.Text += $"{turn}.          {notation}";
+                    moveHistory.AppendText($"{turn}.          {notation}");
                 }
                 else
                 {
-                    moveHistory.Text += $"{turn}.         {notation}";
+                    moveHistory.AppendText($"{turn}.         {notation}");
                 }
                 for (int i = 0; i < 14 - notation.Length; i++)
                 {
-                    moveHistory.Text += ' ';
+                    moveHistory.AppendText(" ");
                 }
             }
             else
             {
-                moveHistory.Text += $"{notation}";
+                moveHistory.AppendText($"{notation}");
                 moveHistory.AppendText(Environment.NewLine);
             }
         }
 
-        private string Promotion()
+        private string Promotion(int color)
         {
-            return "queen";
+            PromotionPopup promotion = new(color);
+            promotion.ShowDialog();
+
+            while (promotion.SelectedType == "") { }
+
+            return promotion.SelectedType;
         }
 
         private void Checkmate(int color)
         {
-
+            // TODO obviously
+            // Ask if the user wants to play again, return to main menu, or quit
+            // Should be pretty straightforward, use a popup just like promotion
+            checkLabel.Text = "A color has won";
         }
 
         private void Stalemate()
@@ -305,7 +313,7 @@ namespace ChessClientGUI
 
             turnLabel.Size = new Size(400, 100);
             turnLabel.TextAlign = ContentAlignment.MiddleCenter;
-            turnLabel.Font = new Font("Imprint MT Shadow", 36F, GraphicsUnit.Point); 
+            turnLabel.Font = new Font("Imprint MT Shadow", 36F, GraphicsUnit.Point);
             turnLabel.Text = "White's turn";
             turnLabel.Visible = false;
 
@@ -315,7 +323,7 @@ namespace ChessClientGUI
             checkLabel.Visible = false;
 
             moveHistory.BorderStyle = BorderStyle.FixedSingle;
-            moveHistory.Size = new Size(300, 500);
+            moveHistory.Size = new Size(325, 500);
             moveHistory.BackColor = Color.DarkGray;
             moveHistory.Padding = new(5);
             moveHistory.Font = new Font("Bell MT", 15F, GraphicsUnit.Point);
@@ -345,7 +353,7 @@ namespace ChessClientGUI
                         int seconds = (int)(elapsed / 1000) % 60;
                         int minutes = (int)(elapsed / 60000) % 60;
                         int hours = (int)(elapsed / 3600000);
-                        timeLabel.Text = $"{hours.ToString("D2")}:{minutes.ToString("D2")}:{seconds.ToString("D2")}"; 
+                        timeLabel.Text = $"{hours.ToString("D2")}:{minutes.ToString("D2")}:{seconds.ToString("D2")}";
                     }));
                 }
                 catch (Exception ex) { }
@@ -358,7 +366,7 @@ namespace ChessClientGUI
 
             if (form.Size.Width > 900)
             {
-                boardBox.Location = new Point(100, form.Height/ 2 - 450);
+                boardBox.Location = new Point(100, form.Height / 2 - 450);
 
                 blackCaptures.Location = new Point(900, boardBox.Location.Y);
                 whiteCaptures.Location = new Point(900, boardBox.Location.Y + 740);
