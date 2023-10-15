@@ -12,7 +12,7 @@ namespace Chess
         private bool fullScreen;
         private int singlePlayerDifficulty;
         private int singlePlayerColor;
-        
+
         /// <summary>
         /// Initializes a new window for the program's main menu.
         /// </summary>
@@ -68,12 +68,13 @@ namespace Chess
             gray2.Checked = true;
             skill1.Checked = true;
             white.Checked = true;
+            fullScreen2.Checked = false;
+            showMoves2.Checked = false;
 
+            credits.Visible = false;
             singlePlayerSettings.Visible = false;
             multiplayerSettings.Visible = false;
             mainMenu.Visible = true;
-            fullScreen2.Checked = false;
-            showMoves2.Checked = false;
         }
 
         /// <summary>

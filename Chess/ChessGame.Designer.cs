@@ -49,9 +49,10 @@ namespace ChessClientGUI
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            BackColor = Color.Gainsboro;
+            BackColor = Color.Green;
             ClientSize = new Size(802, 803);
             Controls.Add(boardBox);
+            ForeColor = SystemColors.ControlLightLight;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "ChessGame";
             Text = "Chess";

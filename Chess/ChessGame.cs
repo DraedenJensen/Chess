@@ -36,7 +36,7 @@ namespace ChessClientGUI
         private StockfishInterface engine;
         private char userPromotionChar;
         private char computerPromotionChar;
-        
+
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
         Label checkLabel;
@@ -46,7 +46,7 @@ namespace ChessClientGUI
         TextBox moveHistory;
         PictureBox line;
         Stopwatch timer;
-        
+
         /// <summary>
         /// Initializes the game window and starts a new chess game in the UI.
         /// </summary>
@@ -60,6 +60,19 @@ namespace ChessClientGUI
         {
             // Initialize stuff
             InitializeComponent();
+
+            if (theme == "green")
+            {
+                BackColor = Color.PeachPuff;
+            }
+            if (theme == "marble")
+            {
+                BackColor = Color.CornflowerBlue;
+            }
+            if (theme == "wood")
+            {
+                BackColor = Color.Silver;
+            }
 
             Theme = theme;
             SinglePlayerDifficulty = difficulty;
@@ -136,7 +149,7 @@ namespace ChessClientGUI
             if (singlePlayer)
             {
                 engine = new(SinglePlayerDifficulty);
-                
+
                 if (SinglePlayerColor == -1)
                 {
                     string computerMove = engine.PassMoveToEngine("");
@@ -337,7 +350,7 @@ namespace ChessClientGUI
             }
 
             board.MovePiece(oldPosition, newPosition);
-            
+
             turnColor *= -1;
             if (turnColor == 1)
             {
@@ -583,6 +596,7 @@ namespace ChessClientGUI
             timeLabel.Size = new Size(400, 100);
             timeLabel.TextAlign = ContentAlignment.MiddleCenter;
             timeLabel.Font = new Font("Bell MT", 48F, GraphicsUnit.Point);
+            timeLabel.ForeColor = Color.Black;
             timeLabel.Visible = false;
 
             timer = new();
@@ -598,17 +612,20 @@ namespace ChessClientGUI
             turnLabel.Size = new Size(400, 100);
             turnLabel.TextAlign = ContentAlignment.MiddleCenter;
             turnLabel.Font = new Font("Imprint MT Shadow", 36F, GraphicsUnit.Point);
+            turnLabel.ForeColor = Color.Black;
             turnLabel.Text = "White's turn";
             turnLabel.Visible = false;
 
             checkLabel.Size = new Size(400, 75);
             checkLabel.TextAlign = ContentAlignment.MiddleCenter;
             checkLabel.Font = new Font("Imprint MT Shadow", 15F, GraphicsUnit.Point);
+            checkLabel.ForeColor = Color.Black;
             checkLabel.Visible = false;
 
             resign = new();
             resign.Size = new Size(100, 50);
-            resign.BackColor = Color.White;
+            resign.BackColor = Color.DarkGray;
+            resign.ForeColor = Color.Black;
             resign.Text = "Resign";
             resign.Font = new Font("Bell MT", 16F, GraphicsUnit.Point);
             resign.Click += Resign;
@@ -616,7 +633,7 @@ namespace ChessClientGUI
 
             moveHistory.BorderStyle = BorderStyle.FixedSingle;
             moveHistory.Size = new Size(325, 500);
-            moveHistory.BackColor = Color.DarkGray;
+            moveHistory.BackColor = Color.Brown;
             moveHistory.Padding = new(5);
             moveHistory.Font = new Font("Bell MT", 15F, GraphicsUnit.Point);
             moveHistory.Multiline = true;
@@ -669,7 +686,7 @@ namespace ChessClientGUI
 
                 blackCaptures.Location = new Point(900, boardBox.Location.Y);
                 whiteCaptures.Location = new Point(900, boardBox.Location.Y + 740);
-                turnLabel.Location = new Point(950, boardBox.Location.Y + 275);
+                turnLabel.Location = new Point(950, boardBox.Location.Y + 225);
                 line.Location = new Point(950, turnLabel.Location.Y + 115);
                 lock (timeLabel)
                 {

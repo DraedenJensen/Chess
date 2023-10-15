@@ -85,6 +85,7 @@
             pictureBox5 = new PictureBox();
             button7 = new Button();
             label17 = new Label();
+            pictureBox6 = new PictureBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             singlePlayerSettings.SuspendLayout();
@@ -98,6 +99,7 @@
             flowLayoutPanel1.SuspendLayout();
             credits.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox5).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox6).BeginInit();
             SuspendLayout();
             // 
             // pictureBox1
@@ -446,6 +448,7 @@
             // 
             // mainMenu
             // 
+            mainMenu.Controls.Add(pictureBox6);
             mainMenu.Controls.Add(button5);
             mainMenu.Controls.Add(label1);
             mainMenu.Controls.Add(button1);
@@ -471,8 +474,8 @@
             // 
             label1.Anchor = AnchorStyles.None;
             label1.BackColor = Color.Transparent;
-            label1.Font = new Font("Imprint MT Shadow", 48F, FontStyle.Underline, GraphicsUnit.Point);
-            label1.Location = new Point(82, 25);
+            label1.Font = new Font("Imprint MT Shadow", 48F, FontStyle.Regular, GraphicsUnit.Point);
+            label1.Location = new Point(82, 1);
             label1.Name = "label1";
             label1.Size = new Size(474, 94);
             label1.TabIndex = 6;
@@ -803,6 +806,17 @@
             label17.TabIndex = 24;
             label17.Text = "Credits";
             // 
+            // pictureBox6
+            // 
+            pictureBox6.BackColor = Color.Transparent;
+            pictureBox6.BackgroundImage = ChessClientGUI.Properties.Resources.line;
+            pictureBox6.BackgroundImageLayout = ImageLayout.Zoom;
+            pictureBox6.Location = new Point(35, 86);
+            pictureBox6.Name = "pictureBox6";
+            pictureBox6.Size = new Size(568, 41);
+            pictureBox6.TabIndex = 36;
+            pictureBox6.TabStop = false;
+            // 
             // ChessClient
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -810,12 +824,12 @@
             BackColor = Color.Green;
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(1024, 553);
-            Controls.Add(credits);
             Controls.Add(pictureBox2);
             Controls.Add(pictureBox1);
+            Controls.Add(mainMenu);
             Controls.Add(multiplayerSettings);
             Controls.Add(singlePlayerSettings);
-            Controls.Add(mainMenu);
+            Controls.Add(credits);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
@@ -840,6 +854,7 @@
             credits.ResumeLayout(false);
             credits.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox5).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox6).EndInit();
             ResumeLayout(false);
         }
 
@@ -900,5 +915,6 @@
         private TextBox text;
         private TextBox textBox2;
         private TextBox textBox1;
+        private PictureBox pictureBox6;
     }
 }

@@ -12,8 +12,28 @@ The model was worked on throughout June 2023. The GUI was worked on throughout O
 
 ## Description
 
+This project was developed in C# using Windows Forms development in Visual Studio 2022, running .NET 4.8.
+
 This solution contains a Windows Forms chess app. Running the program starts a GUI from which the user can play multiplayer games
-on a single system or single-player games against a computer.
+on a single system or single-player games against a computer. The program itself is pretty self-explanatory; as long as if you know 
+how to play chess you can jump right in.
+
+## Solution Contents:
+
+The overall solution is built from 3 projects:
+
+- ChessClientGUI, the project containing the GUI programs:
+	- ChessClient -- the main menu.
+	- ChessGame -- the game window.
+	- GameOverPopup and PromotionPopup -- popup windows to get user input at their respective events.
+	- Plus all the C++ source code and documentation for the Stockfish engine.
+
+- ChessModels, the project containing the backing model programs:
+	- Chessboard -- the main chess game model.
+	- ChessPiece -- a smaller class used by the Chessboard class.
+	- StockfishInterface -- a helper class for running and communicating with Stockfish.
+
+- ChessModelsText, a unit test program for the Chessboard class.
 
 ## Credits
 
