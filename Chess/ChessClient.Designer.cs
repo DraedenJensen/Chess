@@ -37,9 +37,9 @@
             mainMenu = new GroupBox();
             multiplayerSettings = new GroupBox();
             pictureBox3 = new PictureBox();
-            checkBox3 = new CheckBox();
-            checkBox2 = new CheckBox();
-            checkBox1 = new CheckBox();
+            fullScreenBox = new CheckBox();
+            showMovesBox = new CheckBox();
+            flipBoardBox = new CheckBox();
             flowLayoutPanel1 = new FlowLayoutPanel();
             gray = new RadioButton();
             green = new RadioButton();
@@ -83,7 +83,7 @@
             button1.TabIndex = 1;
             button1.Text = "Play against computer";
             button1.UseVisualStyleBackColor = false;
-            button1.Click += startComputerGame;
+            button1.Click += ShowSinglePlayerSettings;
             // 
             // button2
             // 
@@ -96,7 +96,7 @@
             button2.TabIndex = 2;
             button2.Text = "Play local multiplayer";
             button2.UseVisualStyleBackColor = false;
-            button2.Click += StartMultiplayerGame;
+            button2.Click += ShowMultiplayerSettings;
             // 
             // pictureBox1
             // 
@@ -134,9 +134,9 @@
             // multiplayerSettings
             // 
             multiplayerSettings.Controls.Add(pictureBox3);
-            multiplayerSettings.Controls.Add(checkBox3);
-            multiplayerSettings.Controls.Add(checkBox2);
-            multiplayerSettings.Controls.Add(checkBox1);
+            multiplayerSettings.Controls.Add(fullScreenBox);
+            multiplayerSettings.Controls.Add(showMovesBox);
+            multiplayerSettings.Controls.Add(flipBoardBox);
             multiplayerSettings.Controls.Add(flowLayoutPanel1);
             multiplayerSettings.Controls.Add(label6);
             multiplayerSettings.Controls.Add(label5);
@@ -154,6 +154,7 @@
             // 
             // pictureBox3
             // 
+            pictureBox3.BackColor = Color.Transparent;
             pictureBox3.BackgroundImage = ChessClientGUI.Properties.Resources.line;
             pictureBox3.BackgroundImageLayout = ImageLayout.Zoom;
             pictureBox3.Location = new Point(29, 77);
@@ -162,32 +163,38 @@
             pictureBox3.TabIndex = 11;
             pictureBox3.TabStop = false;
             // 
-            // checkBox3
+            // fullScreenBox
             // 
-            checkBox3.Appearance = Appearance.Button;
-            checkBox3.Location = new Point(493, 304);
-            checkBox3.Name = "checkBox3";
-            checkBox3.Size = new Size(30, 30);
-            checkBox3.TabIndex = 10;
-            checkBox3.UseVisualStyleBackColor = true;
+            fullScreenBox.Appearance = Appearance.Button;
+            fullScreenBox.BackgroundImageLayout = ImageLayout.Zoom;
+            fullScreenBox.Location = new Point(493, 304);
+            fullScreenBox.Name = "fullScreenBox";
+            fullScreenBox.Size = new Size(30, 30);
+            fullScreenBox.TabIndex = 10;
+            fullScreenBox.UseVisualStyleBackColor = true;
+            fullScreenBox.CheckedChanged += ToggleFullScreen;
             // 
-            // checkBox2
+            // showMovesBox
             // 
-            checkBox2.Appearance = Appearance.Button;
-            checkBox2.Location = new Point(493, 244);
-            checkBox2.Name = "checkBox2";
-            checkBox2.Size = new Size(30, 30);
-            checkBox2.TabIndex = 9;
-            checkBox2.UseVisualStyleBackColor = true;
+            showMovesBox.Appearance = Appearance.Button;
+            showMovesBox.BackgroundImageLayout = ImageLayout.Zoom;
+            showMovesBox.Location = new Point(493, 244);
+            showMovesBox.Name = "showMovesBox";
+            showMovesBox.Size = new Size(30, 30);
+            showMovesBox.TabIndex = 9;
+            showMovesBox.UseVisualStyleBackColor = true;
+            showMovesBox.CheckedChanged += ToggleShowMoves;
             // 
-            // checkBox1
+            // flipBoardBox
             // 
-            checkBox1.Appearance = Appearance.Button;
-            checkBox1.Location = new Point(493, 184);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(30, 30);
-            checkBox1.TabIndex = 8;
-            checkBox1.UseVisualStyleBackColor = true;
+            flipBoardBox.Appearance = Appearance.Button;
+            flipBoardBox.BackgroundImageLayout = ImageLayout.Zoom;
+            flipBoardBox.Location = new Point(493, 184);
+            flipBoardBox.Name = "flipBoardBox";
+            flipBoardBox.Size = new Size(30, 30);
+            flipBoardBox.TabIndex = 8;
+            flipBoardBox.UseVisualStyleBackColor = true;
+            flipBoardBox.CheckedChanged += ToggleBoardFlip;
             // 
             // flowLayoutPanel1
             // 
@@ -206,6 +213,7 @@
             // 
             gray.Appearance = Appearance.Button;
             gray.AutoSize = true;
+            gray.Checked = true;
             gray.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
             gray.Location = new Point(1, 1);
             gray.Margin = new Padding(1);
@@ -215,6 +223,7 @@
             gray.TabStop = true;
             gray.Text = "Simple gray";
             gray.UseVisualStyleBackColor = true;
+            gray.CheckedChanged += ChangeTheme;
             // 
             // green
             // 
@@ -226,9 +235,9 @@
             green.Name = "green";
             green.Size = new Size(99, 29);
             green.TabIndex = 1;
-            green.TabStop = true;
             green.Text = "Simple green";
             green.UseVisualStyleBackColor = true;
+            green.CheckedChanged += ChangeTheme;
             // 
             // wood
             // 
@@ -240,9 +249,9 @@
             wood.Name = "wood";
             wood.Size = new Size(56, 29);
             wood.TabIndex = 2;
-            wood.TabStop = true;
             wood.Text = "Wood";
             wood.UseVisualStyleBackColor = true;
+            wood.CheckedChanged += ChangeTheme;
             // 
             // marble
             // 
@@ -254,9 +263,9 @@
             marble.Name = "marble";
             marble.Size = new Size(64, 29);
             marble.TabIndex = 3;
-            marble.TabStop = true;
             marble.Text = "Marble";
             marble.UseVisualStyleBackColor = true;
+            marble.CheckedChanged += ChangeTheme;
             // 
             // label6
             // 
@@ -308,6 +317,7 @@
             startMultiplayerGame.TabIndex = 2;
             startMultiplayerGame.Text = "Start Game";
             startMultiplayerGame.UseVisualStyleBackColor = false;
+            startMultiplayerGame.Click += StartMultiplayerGame;
             // 
             // backButton
             // 
@@ -319,7 +329,7 @@
             backButton.TabIndex = 1;
             backButton.Text = "Back to menu";
             backButton.UseVisualStyleBackColor = false;
-            backButton.Click += backButton_Click;
+            backButton.Click += returnToMenu;
             // 
             // label2
             // 
@@ -377,9 +387,9 @@
         private RadioButton green;
         private RadioButton wood;
         private RadioButton marble;
-        private CheckBox checkBox3;
-        private CheckBox checkBox2;
-        private CheckBox checkBox1;
+        private CheckBox fullScreenBox;
+        private CheckBox showMovesBox;
+        private CheckBox flipBoardBox;
         private PictureBox pictureBox3;
     }
 }

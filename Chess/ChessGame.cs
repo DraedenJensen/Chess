@@ -23,6 +23,11 @@ namespace ChessClientGUI
         private (int, int) pieceSelected;
         private List<PictureBox> potentialMoves;
 
+        public string Theme { get; set; }
+        public bool FlipBoard { get; set; }
+        public bool ShowMoves { get; set; }
+        public bool FullScreen { get; set; }
+
         // Potential elements to show only in full-screen. Come back here
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
@@ -33,11 +38,25 @@ namespace ChessClientGUI
         PictureBox line;
         Stopwatch timer;
 
-        public ChessGame()
+        public ChessGame(string theme, bool flipBoard, bool showMoves, bool fullScreen)
         {
             InitializeComponent();
 
+            Theme = theme;
+            FlipBoard = flipBoard;
+            ShowMoves = showMoves;
+            FullScreen = fullScreen;
+
             InitializeHiddenComponents();
+
+            if (theme == "wood")
+            {
+                boardBox.BackgroundImage = ChessClientGUI.Properties.Resources.wood_board;
+            }
+            else if (theme == "marble")
+            {
+                boardBox.BackgroundImage = ChessClientGUI.Properties.Resources.marble_board;
+            }
 
             for (int row = 8; row >= 1; row--)
             {
@@ -52,11 +71,21 @@ namespace ChessClientGUI
 
                     if ((row + column) % 2 == 1)
                     {
-                        box.BackColor = Color.White;
+                        if (theme == "gray" || theme == "green")
+                        {
+                            box.BackColor = Color.White;
+                        }
                     }
                     else
                     {
-                        box.BackColor = Color.DarkGray;
+                        if (theme == "gray")
+                        {
+                            box.BackColor = Color.DarkGray;
+                        }
+                        else if (theme == "green")
+                        {
+                            box.BackColor = Color.OliveDrab;
+                        }
                     }
 
                     boardBox.Controls.Add(box);

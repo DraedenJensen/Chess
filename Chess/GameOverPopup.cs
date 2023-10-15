@@ -40,7 +40,7 @@ namespace ChessClientGUI
             this.Close();
             currentGame.Hide();
             currentGame.Close();
-            ChessGame newGame = new();
+            ChessGame newGame = new(currentGame.Theme, currentGame.FlipBoard, currentGame.ShowMoves, currentGame.FullScreen);
             newGame.ShowDialog();
         }
 

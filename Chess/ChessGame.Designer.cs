@@ -36,6 +36,8 @@ namespace ChessClientGUI
             // 
             // boardBox
             // 
+            boardBox.BackColor = Color.Transparent;
+            boardBox.BackgroundImageLayout = ImageLayout.Stretch;
             boardBox.BorderStyle = BorderStyle.FixedSingle;
             boardBox.Location = new Point(0, 1);
             boardBox.Name = "boardBox";
