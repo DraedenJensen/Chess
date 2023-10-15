@@ -23,6 +23,8 @@ namespace ChessClientGUI
         private (int, int) pieceSelected;
         private List<PictureBox> potentialMoves;
 
+        public int SinglePlayerDifficulty { get; set; }
+        public int SinglePlayerColor { get; set; }
         public string Theme { get; set; }
         public bool FlipBoard { get; set; }
         public bool ShowMoves { get; set; }
@@ -30,6 +32,9 @@ namespace ChessClientGUI
 
         private Color priorColor;
         private PictureBox blueBox;
+        private bool singlePlayer;
+        private StockfishInterface engine;
+        private char computerPromotionChar;
         
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
@@ -41,14 +46,22 @@ namespace ChessClientGUI
         PictureBox line;
         Stopwatch timer;
 
-        public ChessGame(string theme, bool flipBoard, bool showMoves, bool fullScreen)
+        public ChessGame(int difficulty, int color, string theme, bool flipBoard, bool showMoves, bool fullScreen)
         {
             InitializeComponent();
 
             Theme = theme;
+            SinglePlayerDifficulty = difficulty;
+            SinglePlayerColor = color;
             FlipBoard = flipBoard;
             ShowMoves = showMoves;
             FullScreen = fullScreen;
+            computerPromotionChar = ' ';
+
+            if (SinglePlayerDifficulty != 0)
+            {
+                singlePlayer = true;
+            }
 
             InitializeHiddenComponents();
 
@@ -67,6 +80,10 @@ namespace ChessClientGUI
                 {
                     PictureBox box = new();
                     box.Name = $"{column.ToString()}{row.ToString()}";
+                    if (SinglePlayerColor == -1)
+                    {
+                        box.Name = $"{(9 - column).ToString()}{(9 - row).ToString()}";
+                    }
                     box.Size = new(100, 100);
                     box.Margin = new Padding(0);
                     box.BackgroundImageLayout = ImageLayout.Zoom;
@@ -101,6 +118,28 @@ namespace ChessClientGUI
             pieceSelected = (0, 0);
             potentialMoves = new();
 
+            if (singlePlayer)
+            {
+                engine = new(SinglePlayerDifficulty);
+                
+                if (SinglePlayerColor == -1)
+                {
+                    string computerMove = engine.PassMoveToEngine("");
+                    Debug.WriteLine("Computer Move: " + computerMove);
+                    (int, int) oldPosition = ((int)(computerMove[0] - 'a' + 1), int.Parse(computerMove[1].ToString()));
+                    (int, int) newPosition = ((int)(computerMove[2] - 'a' + 1), int.Parse(computerMove[3].ToString()));
+                    Debug.WriteLine($"{oldPosition} {newPosition}");
+                    if (computerMove.Length > 4)
+                    {
+                        computerPromotionChar = computerMove[4];
+                    }
+
+                    board.MovePiece(oldPosition, newPosition);
+                    turnColor *= -1;
+                    turnLabel.Text = "Black's turn";
+                }
+            }
+
             if (fullScreen)
             {
                 WindowState = FormWindowState.Maximized;
@@ -109,6 +148,11 @@ namespace ChessClientGUI
 
         private void squareSelected(object sender, EventArgs e)
         {
+            if (singlePlayer && SinglePlayerColor != turnColor)
+            {
+                return;
+            }
+
             string selectedSquare = ((PictureBox)sender).Name;
             (int, int) selectedCoordinates = (int.Parse(selectedSquare.Substring(0, 1)), int.Parse(selectedSquare.Substring(1)));
 
@@ -139,6 +183,7 @@ namespace ChessClientGUI
                 if (potentialMoves.Contains(sender))
                 {
                     board.MovePiece(pieceSelected, selectedCoordinates);
+
                     if (board.CapturedPieces.Count > blackCaptures.Controls.Count + whiteCaptures.Controls.Count)
                     {
                         PictureBox box = new();
@@ -168,6 +213,12 @@ namespace ChessClientGUI
                     {
                         turnLabel.Text = "Black's turn";
                     }
+
+                    if (singlePlayer)
+                    {
+                        ComputerMove(pieceSelected, selectedCoordinates);
+                    }
+
                     pieceSelected = (0, 0);
                     potentialMoves.Clear();
 
@@ -184,6 +235,7 @@ namespace ChessClientGUI
                         }
                         boardBox.Visible = true;
                     }
+
                     return;
                 }
             }
@@ -232,6 +284,35 @@ namespace ChessClientGUI
             }
         }
 
+        private void ComputerMove((int, int) pieceSelected, (int, int) selectedCoordinates)
+        {
+            string longNotation = "";
+            longNotation += (char)('a' + pieceSelected.Item1 - 1);
+            longNotation += pieceSelected.Item2;
+            longNotation += (char)('a' + selectedCoordinates.Item1 - 1);
+            longNotation += selectedCoordinates.Item2;
+
+            //TODO make sure I add promotion
+            string computerMove = engine.PassMoveToEngine(longNotation);
+            Debug.WriteLine("Computer Move: " + computerMove);
+            (int, int) oldPosition = ((int)(computerMove[0] - 'a' + 1), int.Parse(computerMove[1].ToString()));
+            (int, int) newPosition = ((int)(computerMove[2] - 'a' + 1), int.Parse(computerMove[3].ToString()));
+            Debug.WriteLine($"{oldPosition} {newPosition}");
+            //promotion isn't dealt with here, either, the player is gonna get to choose the computer's piece
+
+            board.MovePiece(oldPosition, newPosition);
+            turnColor *= -1;
+            if (turnColor == 1)
+            {
+                turnLabel.Text = "White's turn";
+                turn++;
+            }
+            else
+            {
+                turnLabel.Text = "Black's turn";
+            }
+        }
+
         private void Check(int check)
         {
             if (check == 0)
@@ -270,12 +351,33 @@ namespace ChessClientGUI
 
         private string Promotion(int color)
         {
-            PromotionPopup promotion = new(color);
-            promotion.ShowDialog();
+            string selectedType = "";
+            switch (computerPromotionChar)
+            {
+                case ' ':
+                    PromotionPopup promotion = new(color);
+                    promotion.ShowDialog();
 
-            while (promotion.SelectedType == "") { }
+                    while (promotion.SelectedType == "") { }
 
-            return promotion.SelectedType;
+                    selectedType = promotion.SelectedType;
+                    break;
+                case 'Q':
+                    selectedType = "queen";
+                    break;
+                case 'R':
+                    selectedType = "rook";
+                    break;
+                case 'B':
+                    selectedType = "bishop";
+                    break;
+                case 'N':
+                    selectedType = "knight";
+                    break;
+            }
+
+            computerPromotionChar = ' ';
+            return selectedType;
         }
 
         private void Checkmate(int color)

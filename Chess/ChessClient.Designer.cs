@@ -52,12 +52,42 @@
             startMultiplayerGame = new Button();
             backButton = new Button();
             label2 = new Label();
+            singlePlayerSettings = new GroupBox();
+            label12 = new Label();
+            pictureBox4 = new PictureBox();
+            fullScreen2 = new CheckBox();
+            showMoves2 = new CheckBox();
+            flowLayoutPanel4 = new FlowLayoutPanel();
+            white = new RadioButton();
+            black = new RadioButton();
+            flowLayoutPanel2 = new FlowLayoutPanel();
+            gray2 = new RadioButton();
+            green2 = new RadioButton();
+            wood2 = new RadioButton();
+            marble2 = new RadioButton();
+            flowLayoutPanel3 = new FlowLayoutPanel();
+            skill1 = new RadioButton();
+            skill2 = new RadioButton();
+            skill3 = new RadioButton();
+            skill4 = new RadioButton();
+            label7 = new Label();
+            label8 = new Label();
+            label9 = new Label();
+            label10 = new Label();
+            button3 = new Button();
+            button4 = new Button();
+            label11 = new Label();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             mainMenu.SuspendLayout();
             multiplayerSettings.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox3).BeginInit();
             flowLayoutPanel1.SuspendLayout();
+            singlePlayerSettings.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
+            flowLayoutPanel4.SuspendLayout();
+            flowLayoutPanel2.SuspendLayout();
+            flowLayoutPanel3.SuspendLayout();
             SuspendLayout();
             // 
             // label1
@@ -147,7 +177,7 @@
             multiplayerSettings.Controls.Add(startMultiplayerGame);
             multiplayerSettings.Controls.Add(backButton);
             multiplayerSettings.Controls.Add(label2);
-            multiplayerSettings.Location = new Point(199, 28);
+            multiplayerSettings.Location = new Point(199, 25);
             multiplayerSettings.Name = "multiplayerSettings";
             multiplayerSettings.Size = new Size(627, 516);
             multiplayerSettings.TabIndex = 3;
@@ -343,6 +373,330 @@
             label2.TabIndex = 0;
             label2.Text = "Multiplayer Game";
             // 
+            // singlePlayerSettings
+            // 
+            singlePlayerSettings.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            singlePlayerSettings.Controls.Add(label12);
+            singlePlayerSettings.Controls.Add(pictureBox4);
+            singlePlayerSettings.Controls.Add(fullScreen2);
+            singlePlayerSettings.Controls.Add(showMoves2);
+            singlePlayerSettings.Controls.Add(flowLayoutPanel4);
+            singlePlayerSettings.Controls.Add(flowLayoutPanel2);
+            singlePlayerSettings.Controls.Add(flowLayoutPanel3);
+            singlePlayerSettings.Controls.Add(label7);
+            singlePlayerSettings.Controls.Add(label8);
+            singlePlayerSettings.Controls.Add(label9);
+            singlePlayerSettings.Controls.Add(label10);
+            singlePlayerSettings.Controls.Add(button3);
+            singlePlayerSettings.Controls.Add(button4);
+            singlePlayerSettings.Controls.Add(label11);
+            singlePlayerSettings.Location = new Point(199, 12);
+            singlePlayerSettings.Name = "singlePlayerSettings";
+            singlePlayerSettings.Size = new Size(627, 516);
+            singlePlayerSettings.TabIndex = 12;
+            singlePlayerSettings.TabStop = false;
+            singlePlayerSettings.Visible = false;
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Font = new Font("Bell MT", 18F, FontStyle.Regular, GraphicsUnit.Point);
+            label12.Location = new Point(90, 233);
+            label12.Name = "label12";
+            label12.Size = new Size(384, 34);
+            label12.TabIndex = 12;
+            label12.Text = "Color . . . . . . . . . . . . . . . . . . . .";
+            // 
+            // pictureBox4
+            // 
+            pictureBox4.BackColor = Color.Transparent;
+            pictureBox4.BackgroundImage = ChessClientGUI.Properties.Resources.line;
+            pictureBox4.BackgroundImageLayout = ImageLayout.Zoom;
+            pictureBox4.Location = new Point(29, 77);
+            pictureBox4.Name = "pictureBox4";
+            pictureBox4.Size = new Size(568, 41);
+            pictureBox4.TabIndex = 11;
+            pictureBox4.TabStop = false;
+            // 
+            // fullScreen2
+            // 
+            fullScreen2.Appearance = Appearance.Button;
+            fullScreen2.BackgroundImageLayout = ImageLayout.Zoom;
+            fullScreen2.Location = new Point(540, 333);
+            fullScreen2.Name = "fullScreen2";
+            fullScreen2.Size = new Size(30, 30);
+            fullScreen2.TabIndex = 10;
+            fullScreen2.UseVisualStyleBackColor = true;
+            fullScreen2.CheckedChanged += ToggleFullScreen;
+            // 
+            // showMoves2
+            // 
+            showMoves2.Appearance = Appearance.Button;
+            showMoves2.BackgroundImageLayout = ImageLayout.Zoom;
+            showMoves2.Location = new Point(540, 283);
+            showMoves2.Name = "showMoves2";
+            showMoves2.Size = new Size(30, 30);
+            showMoves2.TabIndex = 9;
+            showMoves2.UseVisualStyleBackColor = true;
+            showMoves2.CheckedChanged += ToggleShowMoves;
+            // 
+            // flowLayoutPanel4
+            // 
+            flowLayoutPanel4.AutoSize = true;
+            flowLayoutPanel4.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flowLayoutPanel4.Controls.Add(white);
+            flowLayoutPanel4.Controls.Add(black);
+            flowLayoutPanel4.Location = new Point(485, 229);
+            flowLayoutPanel4.Name = "flowLayoutPanel4";
+            flowLayoutPanel4.Size = new Size(84, 42);
+            flowLayoutPanel4.TabIndex = 9;
+            // 
+            // white
+            // 
+            white.Appearance = Appearance.Button;
+            white.BackgroundImage = ChessClientGUI.Properties.Resources.white_king;
+            white.BackgroundImageLayout = ImageLayout.Stretch;
+            white.Checked = true;
+            white.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            white.Location = new Point(1, 1);
+            white.Margin = new Padding(1);
+            white.Name = "white";
+            white.Size = new Size(40, 40);
+            white.TabIndex = 0;
+            white.TabStop = true;
+            white.UseVisualStyleBackColor = true;
+            white.CheckedChanged += ColorChanged;
+            // 
+            // black
+            // 
+            black.Appearance = Appearance.Button;
+            black.BackgroundImage = ChessClientGUI.Properties.Resources.black_king;
+            black.BackgroundImageLayout = ImageLayout.Stretch;
+            black.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            black.Location = new Point(43, 1);
+            black.Margin = new Padding(1);
+            black.Name = "black";
+            black.Size = new Size(40, 40);
+            black.TabIndex = 1;
+            black.UseVisualStyleBackColor = true;
+            black.CheckedChanged += ColorChanged;
+            // 
+            // flowLayoutPanel2
+            // 
+            flowLayoutPanel2.AutoSize = true;
+            flowLayoutPanel2.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flowLayoutPanel2.Controls.Add(gray2);
+            flowLayoutPanel2.Controls.Add(green2);
+            flowLayoutPanel2.Controls.Add(wood2);
+            flowLayoutPanel2.Controls.Add(marble2);
+            flowLayoutPanel2.Location = new Point(249, 138);
+            flowLayoutPanel2.Name = "flowLayoutPanel2";
+            flowLayoutPanel2.Size = new Size(321, 31);
+            flowLayoutPanel2.TabIndex = 7;
+            // 
+            // gray2
+            // 
+            gray2.Appearance = Appearance.Button;
+            gray2.AutoSize = true;
+            gray2.Checked = true;
+            gray2.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            gray2.Location = new Point(1, 1);
+            gray2.Margin = new Padding(1);
+            gray2.Name = "gray2";
+            gray2.Size = new Size(94, 29);
+            gray2.TabIndex = 0;
+            gray2.TabStop = true;
+            gray2.Text = "Simple gray";
+            gray2.UseVisualStyleBackColor = true;
+            gray2.CheckedChanged += ChangeTheme;
+            // 
+            // green2
+            // 
+            green2.Appearance = Appearance.Button;
+            green2.AutoSize = true;
+            green2.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            green2.Location = new Point(97, 1);
+            green2.Margin = new Padding(1);
+            green2.Name = "green2";
+            green2.Size = new Size(99, 29);
+            green2.TabIndex = 1;
+            green2.Text = "Simple green";
+            green2.UseVisualStyleBackColor = true;
+            green2.CheckedChanged += ChangeTheme;
+            // 
+            // wood2
+            // 
+            wood2.Appearance = Appearance.Button;
+            wood2.AutoSize = true;
+            wood2.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            wood2.Location = new Point(198, 1);
+            wood2.Margin = new Padding(1);
+            wood2.Name = "wood2";
+            wood2.Size = new Size(56, 29);
+            wood2.TabIndex = 2;
+            wood2.Text = "Wood";
+            wood2.UseVisualStyleBackColor = true;
+            wood2.CheckedChanged += ChangeTheme;
+            // 
+            // marble2
+            // 
+            marble2.Appearance = Appearance.Button;
+            marble2.AutoSize = true;
+            marble2.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            marble2.Location = new Point(256, 1);
+            marble2.Margin = new Padding(1);
+            marble2.Name = "marble2";
+            marble2.Size = new Size(64, 29);
+            marble2.TabIndex = 3;
+            marble2.Text = "Marble";
+            marble2.UseVisualStyleBackColor = true;
+            marble2.CheckedChanged += ChangeTheme;
+            // 
+            // flowLayoutPanel3
+            // 
+            flowLayoutPanel3.AutoSize = true;
+            flowLayoutPanel3.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flowLayoutPanel3.Controls.Add(skill1);
+            flowLayoutPanel3.Controls.Add(skill2);
+            flowLayoutPanel3.Controls.Add(skill3);
+            flowLayoutPanel3.Controls.Add(skill4);
+            flowLayoutPanel3.Location = new Point(226, 183);
+            flowLayoutPanel3.Name = "flowLayoutPanel3";
+            flowLayoutPanel3.Size = new Size(344, 31);
+            flowLayoutPanel3.TabIndex = 8;
+            // 
+            // skill1
+            // 
+            skill1.Appearance = Appearance.Button;
+            skill1.AutoSize = true;
+            skill1.Checked = true;
+            skill1.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            skill1.Location = new Point(1, 1);
+            skill1.Margin = new Padding(1);
+            skill1.Name = "skill1";
+            skill1.Size = new Size(74, 29);
+            skill1.TabIndex = 0;
+            skill1.TabStop = true;
+            skill1.Text = "Beginner";
+            skill1.UseVisualStyleBackColor = true;
+            skill1.CheckedChanged += DifficultyChanged;
+            // 
+            // skill2
+            // 
+            skill2.Appearance = Appearance.Button;
+            skill2.AutoSize = true;
+            skill2.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            skill2.Location = new Point(77, 1);
+            skill2.Margin = new Padding(1);
+            skill2.Name = "skill2";
+            skill2.Size = new Size(98, 29);
+            skill2.TabIndex = 1;
+            skill2.Text = "Intermediate";
+            skill2.UseVisualStyleBackColor = true;
+            skill2.CheckedChanged += DifficultyChanged;
+            // 
+            // skill3
+            // 
+            skill3.Appearance = Appearance.Button;
+            skill3.AutoSize = true;
+            skill3.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            skill3.Location = new Point(177, 1);
+            skill3.Margin = new Padding(1);
+            skill3.Name = "skill3";
+            skill3.Size = new Size(62, 29);
+            skill3.TabIndex = 2;
+            skill3.Text = "Expert";
+            skill3.UseVisualStyleBackColor = true;
+            skill3.CheckedChanged += DifficultyChanged;
+            // 
+            // skill4
+            // 
+            skill4.Appearance = Appearance.Button;
+            skill4.AutoSize = true;
+            skill4.Font = new Font("Bell MT", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            skill4.Location = new Point(241, 1);
+            skill4.Margin = new Padding(1);
+            skill4.Name = "skill4";
+            skill4.Size = new Size(102, 29);
+            skill4.TabIndex = 3;
+            skill4.Text = "Grandmaster";
+            skill4.UseVisualStyleBackColor = true;
+            skill4.CheckedChanged += DifficultyChanged;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Font = new Font("Bell MT", 18F, FontStyle.Regular, GraphicsUnit.Point);
+            label7.Location = new Point(90, 333);
+            label7.Name = "label7";
+            label7.Size = new Size(455, 34);
+            label7.TabIndex = 6;
+            label7.Text = "Full Screen . . . . . . . . . . . . . . . . . . . .";
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Font = new Font("Bell MT", 18F, FontStyle.Regular, GraphicsUnit.Point);
+            label8.Location = new Point(90, 283);
+            label8.Name = "label8";
+            label8.Size = new Size(462, 34);
+            label8.TabIndex = 5;
+            label8.Text = "Hide available moves . . . . . . . . . . . . ";
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Font = new Font("Bell MT", 18F, FontStyle.Regular, GraphicsUnit.Point);
+            label9.Location = new Point(90, 183);
+            label9.Name = "label9";
+            label9.Size = new Size(130, 34);
+            label9.TabIndex = 4;
+            label9.Text = "Difficulty";
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Font = new Font("Bell MT", 18F, FontStyle.Regular, GraphicsUnit.Point);
+            label10.Location = new Point(90, 138);
+            label10.Name = "label10";
+            label10.Size = new Size(162, 34);
+            label10.TabIndex = 3;
+            label10.Text = "Theme . . . .";
+            // 
+            // button3
+            // 
+            button3.BackColor = Color.DarkGray;
+            button3.Font = new Font("Bell MT", 18F, FontStyle.Regular, GraphicsUnit.Point);
+            button3.Location = new Point(179, 386);
+            button3.Name = "button3";
+            button3.Size = new Size(269, 67);
+            button3.TabIndex = 2;
+            button3.Text = "Start Game";
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += StartSinglePlayerGame;
+            // 
+            // button4
+            // 
+            button4.BackColor = Color.White;
+            button4.Font = new Font("Bell MT", 13.8F, FontStyle.Regular, GraphicsUnit.Point);
+            button4.Location = new Point(229, 459);
+            button4.Name = "button4";
+            button4.Size = new Size(168, 45);
+            button4.TabIndex = 1;
+            button4.Text = "Back to menu";
+            button4.UseVisualStyleBackColor = false;
+            button4.Click += returnToMenu;
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Font = new Font("Imprint MT Shadow", 36F, FontStyle.Regular, GraphicsUnit.Point);
+            label11.Location = new Point(44, 3);
+            label11.Name = "label11";
+            label11.Size = new Size(539, 71);
+            label11.TabIndex = 0;
+            label11.Text = "Single Player Game";
+            // 
             // ChessClient
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -350,6 +704,7 @@
             BackColor = Color.Gainsboro;
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(1024, 553);
+            Controls.Add(singlePlayerSettings);
             Controls.Add(multiplayerSettings);
             Controls.Add(pictureBox2);
             Controls.Add(pictureBox1);
@@ -366,6 +721,14 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
             flowLayoutPanel1.ResumeLayout(false);
             flowLayoutPanel1.PerformLayout();
+            singlePlayerSettings.ResumeLayout(false);
+            singlePlayerSettings.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
+            flowLayoutPanel4.ResumeLayout(false);
+            flowLayoutPanel2.ResumeLayout(false);
+            flowLayoutPanel2.PerformLayout();
+            flowLayoutPanel3.ResumeLayout(false);
+            flowLayoutPanel3.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -394,5 +757,30 @@
         private CheckBox showMovesBox;
         private CheckBox flipBoardBox;
         private PictureBox pictureBox3;
+        private GroupBox singlePlayerSettings;
+        private PictureBox pictureBox4;
+        private CheckBox fullScreen2;
+        private CheckBox showMoves2;
+        private FlowLayoutPanel flowLayoutPanel2;
+        private RadioButton gray2;
+        private RadioButton green2;
+        private RadioButton wood2;
+        private RadioButton marble2;
+        private FlowLayoutPanel flowLayoutPanel3;
+        private RadioButton skill1;
+        private RadioButton skill2;
+        private RadioButton skill3;
+        private RadioButton skill4;
+        private Label label7;
+        private Label label8;
+        private Label label9;
+        private Label label10;
+        private Button button3;
+        private Button button4;
+        private Label label11;
+        private Label label12;
+        private FlowLayoutPanel flowLayoutPanel4;
+        private RadioButton white;
+        private RadioButton black;
     }
 }
