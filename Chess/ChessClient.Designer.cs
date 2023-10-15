@@ -122,6 +122,7 @@
             // 
             // mainMenu
             // 
+            mainMenu.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             mainMenu.Controls.Add(label1);
             mainMenu.Controls.Add(button1);
             mainMenu.Controls.Add(button2);
@@ -133,6 +134,7 @@
             // 
             // multiplayerSettings
             // 
+            multiplayerSettings.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             multiplayerSettings.Controls.Add(pictureBox3);
             multiplayerSettings.Controls.Add(fullScreenBox);
             multiplayerSettings.Controls.Add(showMovesBox);
@@ -145,7 +147,7 @@
             multiplayerSettings.Controls.Add(startMultiplayerGame);
             multiplayerSettings.Controls.Add(backButton);
             multiplayerSettings.Controls.Add(label2);
-            multiplayerSettings.Location = new Point(199, 25);
+            multiplayerSettings.Location = new Point(199, 28);
             multiplayerSettings.Name = "multiplayerSettings";
             multiplayerSettings.Size = new Size(627, 516);
             multiplayerSettings.TabIndex = 3;
@@ -353,6 +355,7 @@
             Controls.Add(pictureBox1);
             Controls.Add(mainMenu);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            MaximizeBox = false;
             Name = "ChessClient";
             Text = "Chess";
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();

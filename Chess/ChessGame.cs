@@ -28,7 +28,9 @@ namespace ChessClientGUI
         public bool ShowMoves { get; set; }
         public bool FullScreen { get; set; }
 
-        // Potential elements to show only in full-screen. Come back here
+        private Color priorColor;
+        private PictureBox blueBox;
+        
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
         Label checkLabel;
@@ -97,6 +99,11 @@ namespace ChessClientGUI
             turn = 1;
             pieceSelected = (0, 0);
             potentialMoves = new();
+
+            if (fullScreen)
+            {
+                WindowState = FormWindowState.Maximized;
+            }
         }
 
         private void squareSelected(object sender, EventArgs e)
@@ -109,10 +116,20 @@ namespace ChessClientGUI
             {
                 return;
             }
-
-            foreach (PictureBox box in potentialMoves)
+            else
             {
-                box.Image = null;
+                if (blueBox != null)
+                {
+                    blueBox.BackColor = priorColor;
+                }
+            }
+
+            if (ShowMoves)
+            {
+                foreach (PictureBox box in potentialMoves)
+                {
+                    box.Image = null;
+                }
             }
 
             // If we've already selected a piece, check if the new selection is a valid move for that piece
@@ -176,10 +193,26 @@ namespace ChessClientGUI
 
             // If we make it past all those checks, we can finally update the piece, and keep track of the new pictureBoxes with dots
             pieceSelected = selectedCoordinates;
+            if (!ShowMoves)
+            {
+                blueBox = ((PictureBox)boardBox.Controls.Find(selectedCoordinates.Item1.ToString() + selectedCoordinates.Item2.ToString(), true)[0]);
+                priorColor = blueBox.BackColor;
+                if (Theme == "gray" || Theme == "green")
+                {
+                    blueBox.BackColor = Color.FromArgb(50, blueBox.BackColor);
+                }
+                else
+                {
+                    blueBox.BackColor = Color.FromArgb(50, Color.DeepSkyBlue);
+                }
+            }
             foreach ((int, int) potentialMove in piece.AvailableMoves)
             {
                 PictureBox box = ((PictureBox)boardBox.Controls.Find(potentialMove.Item1.ToString() + potentialMove.Item2.ToString(), true)[0]);
-                box.Image = ChessClientGUI.Properties.Resources.translucentDot;
+                if (ShowMoves)
+                {
+                    box.Image = ChessClientGUI.Properties.Resources.translucentDot;
+                }
                 potentialMoves.Add(box);
             }
         }
@@ -244,7 +277,8 @@ namespace ChessClientGUI
 
         private void RemovePieceFromSquare((int, int) square)
         {
-            ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]).BackgroundImage = null;
+            PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
+            box.BackgroundImage = null;
         }
 
         private void ShowPieceHelper(PictureBox box, ChessPiece piece)
