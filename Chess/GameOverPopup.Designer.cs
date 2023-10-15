@@ -117,6 +117,7 @@
             Controls.Add(pictureBox1);
             Controls.Add(smallLabel);
             Controls.Add(bigLabel);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "GameOverPopup";
             RightToLeftLayout = true;

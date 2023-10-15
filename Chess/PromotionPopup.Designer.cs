@@ -95,6 +95,7 @@
             Controls.Add(queen);
             Controls.Add(bishop);
             Controls.Add(label1);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "PromotionPopup";
             Text = "Chess";

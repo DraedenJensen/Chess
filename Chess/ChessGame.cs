@@ -34,7 +34,10 @@ namespace ChessClientGUI
         private PictureBox blueBox;
         private bool singlePlayer;
         private StockfishInterface engine;
+        private char userPromotionChar;
         private char computerPromotionChar;
+
+        int test;
         
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
@@ -57,6 +60,7 @@ namespace ChessClientGUI
             ShowMoves = showMoves;
             FullScreen = fullScreen;
             computerPromotionChar = ' ';
+            userPromotionChar = ' ';
 
             if (SinglePlayerDifficulty != 0)
             {
@@ -118,6 +122,8 @@ namespace ChessClientGUI
             pieceSelected = (0, 0);
             potentialMoves = new();
 
+            test = 2;
+
             if (singlePlayer)
             {
                 engine = new(SinglePlayerDifficulty);
@@ -129,10 +135,6 @@ namespace ChessClientGUI
                     (int, int) oldPosition = ((int)(computerMove[0] - 'a' + 1), int.Parse(computerMove[1].ToString()));
                     (int, int) newPosition = ((int)(computerMove[2] - 'a' + 1), int.Parse(computerMove[3].ToString()));
                     Debug.WriteLine($"{oldPosition} {newPosition}");
-                    if (computerMove.Length > 4)
-                    {
-                        computerPromotionChar = computerMove[4];
-                    }
 
                     board.MovePiece(oldPosition, newPosition);
                     turnColor *= -1;
@@ -291,16 +293,26 @@ namespace ChessClientGUI
             longNotation += pieceSelected.Item2;
             longNotation += (char)('a' + selectedCoordinates.Item1 - 1);
             longNotation += selectedCoordinates.Item2;
+            if (userPromotionChar != ' ')
+            {
+                longNotation += userPromotionChar;
+            }
+            userPromotionChar = ' ';
 
-            //TODO make sure I add promotion
             string computerMove = engine.PassMoveToEngine(longNotation);
+
             Debug.WriteLine("Computer Move: " + computerMove);
             (int, int) oldPosition = ((int)(computerMove[0] - 'a' + 1), int.Parse(computerMove[1].ToString()));
             (int, int) newPosition = ((int)(computerMove[2] - 'a' + 1), int.Parse(computerMove[3].ToString()));
             Debug.WriteLine($"{oldPosition} {newPosition}");
-            //promotion isn't dealt with here, either, the player is gonna get to choose the computer's piece
+
+            if (computerMove.Length > 4)
+            {
+                computerPromotionChar = computerMove[4];
+            }
 
             board.MovePiece(oldPosition, newPosition);
+            
             turnColor *= -1;
             if (turnColor == 1)
             {
@@ -361,6 +373,11 @@ namespace ChessClientGUI
                     while (promotion.SelectedType == "") { }
 
                     selectedType = promotion.SelectedType;
+                    userPromotionChar = selectedType.ToUpper()[0];
+                    if (userPromotionChar == 'K')
+                    {
+                        userPromotionChar = 'N';
+                    }
                     break;
                 case 'Q':
                     selectedType = "queen";
