@@ -8,7 +8,7 @@ namespace Chess
     {
         private string theme;
         private bool flipBoard;
-        private bool showMoves;
+        private bool hideMoves;
         private bool fullScreen;
 
         public ChessClient()
@@ -17,7 +17,7 @@ namespace Chess
 
             theme = "gray";
             flipBoard = false;
-            showMoves = false;
+            hideMoves = false;
             fullScreen = false;
         }
 
@@ -62,8 +62,8 @@ namespace Chess
 
         private void ToggleShowMoves(object sender, EventArgs e)
         {
-            showMoves = !showMoves;
-            if (showMoves)
+            hideMoves = !hideMoves;
+            if (hideMoves)
             {
                 ((CheckBox)sender).BackgroundImage = ChessClientGUI.Properties.Resources.translucentDot;
             }
@@ -89,7 +89,7 @@ namespace Chess
         private void StartMultiplayerGame(object sender, EventArgs e)
         {
             this.Hide();
-            ChessGame game = new(theme, flipBoard, showMoves, fullScreen);
+            ChessGame game = new(theme, flipBoard, !hideMoves, fullScreen);
             game.ShowDialog();
         }
     }

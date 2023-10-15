@@ -169,6 +169,20 @@ namespace ChessClientGUI
                     }
                     pieceSelected = (0, 0);
                     potentialMoves.Clear();
+
+                    if (FlipBoard)
+                    {
+                        boardBox.Visible = false;
+                        for (int i = 0; i < 32; i++)
+                        {
+                            PictureBox thisBox = ((PictureBox)boardBox.Controls[i]);
+                            PictureBox mirrorBox = ((PictureBox)boardBox.Controls[63 - i]);
+
+                            boardBox.Controls.SetChildIndex(thisBox, 63 - i);
+                            boardBox.Controls.SetChildIndex(mirrorBox, i);
+                        }
+                        boardBox.Visible = true;
+                    }
                     return;
                 }
             }

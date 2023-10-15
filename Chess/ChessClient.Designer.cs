@@ -285,9 +285,9 @@
             label5.Font = new Font("Bell MT", 18F, FontStyle.Regular, GraphicsUnit.Point);
             label5.Location = new Point(103, 244);
             label5.Name = "label5";
-            label5.Size = new Size(397, 34);
+            label5.Size = new Size(402, 34);
             label5.TabIndex = 5;
-            label5.Text = "Show available moves . . . . . . . ";
+            label5.Text = "Hide available moves . . . . . . . . ";
             // 
             // label4
             // 
