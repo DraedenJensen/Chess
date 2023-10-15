@@ -36,8 +36,6 @@ namespace ChessClientGUI
         private StockfishInterface engine;
         private char userPromotionChar;
         private char computerPromotionChar;
-
-        int test;
         
         FlowLayoutPanel blackCaptures;
         FlowLayoutPanel whiteCaptures;
@@ -48,9 +46,19 @@ namespace ChessClientGUI
         TextBox moveHistory;
         PictureBox line;
         Stopwatch timer;
-
+        
+        /// <summary>
+        /// Initializes the game window and starts a new chess game in the UI.
+        /// </summary>
+        /// <param name="difficulty">Difficulty level for single-player games (1-4)</param>
+        /// <param name="color">Player's color in single-player games (1 or -1)</param>
+        /// <param name="theme">Graphical theme of this game</param>
+        /// <param name="flipBoard">Whether or not the board flips for an accurate view on black's turn in multiplayer games</param>
+        /// <param name="showMoves">Whether or not potential moves are shown when the current player selects a piece</param>
+        /// <param name="fullScreen">Whether or not the game starts full-screen</param>
         public ChessGame(int difficulty, int color, string theme, bool flipBoard, bool showMoves, bool fullScreen)
         {
+            // Initialize stuff
             InitializeComponent();
 
             Theme = theme;
@@ -78,6 +86,7 @@ namespace ChessClientGUI
                 boardBox.BackgroundImage = ChessClientGUI.Properties.Resources.marble_board;
             }
 
+            // Fill the board with alternating colors, determined by the theme
             for (int row = 8; row >= 1; row--)
             {
                 for (int column = 1; column <= 8; column++)
@@ -116,14 +125,14 @@ namespace ChessClientGUI
                 }
             }
 
+            // Start the backing model
             board = new(ShowPieceOnSquare, RemovePieceFromSquare, Check, PrintMove, Promotion, Checkmate, Stalemate);
             turnColor = 1;
             turn = 1;
             pieceSelected = (0, 0);
             potentialMoves = new();
 
-            test = 2;
-
+            // Start the backing engine in single-player and let it make its first move if it's white
             if (singlePlayer)
             {
                 engine = new(SinglePlayerDifficulty);
@@ -148,8 +157,12 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Event handler method to handle whenever a user clicks any square on the board
+        /// </summary>
         private void squareSelected(object sender, EventArgs e)
         {
+            // Return if it's single-player and it's not their turn
             if (singlePlayer && SinglePlayerColor != turnColor)
             {
                 return;
@@ -163,14 +176,14 @@ namespace ChessClientGUI
             {
                 return;
             }
-            else
-            {
-                if (blueBox != null)
-                {
-                    blueBox.BackColor = priorColor;
-                }
-            }
 
+            // Clear previous markers
+            // This blueBox thing is used to mark the currently selected square if showMoves is false
+            // (Without seeing your available moves it was really confusing to know which piece was selected)
+            if (blueBox != null)
+            {
+                blueBox.BackColor = priorColor;
+            }
             if (ShowMoves)
             {
                 foreach (PictureBox box in potentialMoves)
@@ -179,13 +192,14 @@ namespace ChessClientGUI
                 }
             }
 
-            // If we've already selected a piece, check if the new selection is a valid move for that piece
+            // If we've already selected a piece, check if the new selection is a valid move for that piece. Make the move if so
             if (pieceSelected != (0, 0))
             {
                 if (potentialMoves.Contains(sender))
                 {
                     board.MovePiece(pieceSelected, selectedCoordinates);
 
+                    // Update capture UIs if necessary
                     if (board.CapturedPieces.Count > blackCaptures.Controls.Count + whiteCaptures.Controls.Count)
                     {
                         PictureBox box = new();
@@ -205,6 +219,7 @@ namespace ChessClientGUI
 
                         ShowPieceHelper(box, newlyCaptured);
                     }
+                    // Update turn
                     turnColor *= -1;
                     if (turnColor == 1)
                     {
@@ -216,14 +231,17 @@ namespace ChessClientGUI
                         turnLabel.Text = "Black's turn";
                     }
 
+                    // Let the computer make their move in single-player
                     if (singlePlayer)
                     {
                         ComputerMove(pieceSelected, selectedCoordinates);
                     }
 
+                    // Reset data
                     pieceSelected = (0, 0);
                     potentialMoves.Clear();
 
+                    // Flip the board if needed
                     if (FlipBoard)
                     {
                         boardBox.Visible = false;
@@ -242,7 +260,7 @@ namespace ChessClientGUI
                 }
             }
 
-            // Reset selected piece to be blank and clear dots
+            // Reset data
             pieceSelected = (0, 0);
             potentialMoves.Clear();
 
@@ -261,6 +279,7 @@ namespace ChessClientGUI
             }
 
             // If we make it past all those checks, we can finally update the piece, and keep track of the new pictureBoxes with dots
+            // (Or a blue tint if not showing potential moves)
             pieceSelected = selectedCoordinates;
             if (!ShowMoves)
             {
@@ -286,6 +305,12 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Method for single-player. Uses the Stockfish communication class to pass the user's move to the chess, then parse the computer's
+        /// subsequent move and update the chessboard accordingly.
+        /// </summary>
+        /// <param name="pieceSelected">Square the player moved from</param>
+        /// <param name="selectedCoordinates">Square the player moved to</param>
         private void ComputerMove((int, int) pieceSelected, (int, int) selectedCoordinates)
         {
             string longNotation = "";
@@ -325,6 +350,10 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Delegate called by the backing model whenever the check state changes. This method just updates the full-screen UI to notify the user.
+        /// </summary>
+        /// <param name="check">-1 or 1 depending on which color is in check, but that doesn't actually affect this method. 0 if we're switching out of check</param>
         private void Check(int check)
         {
             if (check == 0)
@@ -337,6 +366,10 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Updates the move history text box with the algebraic notation of the last move made.
+        /// </summary>
+        /// <param name="notation">Notation to update the box with</param>
         private void PrintMove(string notation)
         {
             if (turnColor == 1)
@@ -361,6 +394,12 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Delegate method called whenever someone needs to promote. Opens a popup which allows the user to select the piece to promote to. If
+        /// the computer is promoting, then their selection was already obtained from the move they made.
+        /// </summary>
+        /// <param name="color">The color that's promoting</param>
+        /// <returns>The type of piece to promote to</returns>
         private string Promotion(int color)
         {
             string selectedType = "";
@@ -397,22 +436,39 @@ namespace ChessClientGUI
             return selectedType;
         }
 
+        /// <summary>
+        /// Delegate method called when the game reaches checkmate. Opens a game over popup.
+        /// </summary>
+        /// <param name="color">The color that lost</param>
         private void Checkmate(int color)
         {
             GameOverPopup checkmate = new("Checkmate!", color, this);
             checkmate.ShowDialog();
         }
 
+        /// <summary>
+        /// Delegate method called when the game reaches stalemate. Opens a game over popup.
+        /// </summary>
         private void Stalemate()
         {
             GameOverPopup stalemate = new("Stalemate!", 0, this);
             stalemate.ShowDialog();
         }
 
+        /// <summary>
+        /// Event handler method called when someone resigns. Opens a game over popup.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Resign(object sender, EventArgs e)
         {
+            int color = turnColor;
+            if (singlePlayer)
+            {
+                color = SinglePlayerColor;
+            }
             string message;
-            if (turnColor == 1)
+            if (color == 1)
             {
                 message = "Black wins!";
             }
@@ -420,16 +476,36 @@ namespace ChessClientGUI
             {
                 message = "White wins!";
             }
-            GameOverPopup resigned = new(message, turnColor * -2, this);
+            GameOverPopup resigned = new(message, color * -2, this);
             resigned.ShowDialog();
         }
 
+        /// <summary>
+        /// Delegate method which updates a square's image to clear a piece from it.
+        /// </summary>
+        /// <param name="square">Coordinates of the square to clear</param>
         private void RemovePieceFromSquare((int, int) square)
         {
             PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
             box.BackgroundImage = null;
         }
 
+        /// <summary>
+        /// Delegate method which updates a square's image to show a piece on it.
+        /// </summary>
+        /// <param name="square">Coordinates of the square</param>
+        /// <param name="piece">Piece to show</param>
+        private void ShowPieceOnSquare((int, int) square, ChessPiece piece)
+        {
+            PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
+            ShowPieceHelper(box, piece);
+        }
+
+        /// <summary>
+        /// Helper method which determines which image to show on a square given the piece color and type.
+        /// </summary>
+        /// <param name="box">Box we're showing the piece on</param>
+        /// <param name="piece">Piece to show on the box</param>
         private void ShowPieceHelper(PictureBox box, ChessPiece piece)
         {
             if (piece.Color == 1)
@@ -482,12 +558,9 @@ namespace ChessClientGUI
             }
         }
 
-        private void ShowPieceOnSquare((int, int) square, ChessPiece piece)
-        {
-            PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
-            ShowPieceHelper(box, piece);
-        }
-
+        /// <summary>
+        /// Initializes all the components that are only on the full-screen view.
+        /// </summary>
         private void InitializeHiddenComponents()
         {
             blackCaptures = new();
@@ -561,6 +634,9 @@ namespace ChessClientGUI
             Controls.Add(resign);
         }
 
+        /// <summary>
+        /// A method which is continuously called in parallel to update the stopwatch label.
+        /// </summary>
         private void UpdateElapsedTime()
         {
             while (true)
@@ -580,6 +656,9 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Event handler method to resize the form and either show or hide the necessary elements.
+        /// </summary>
         private void ResizeLayout(object sender, EventArgs e)
         {
             Form form = (Form)sender;

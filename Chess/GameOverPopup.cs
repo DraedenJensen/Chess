@@ -14,6 +14,13 @@ namespace ChessClientGUI
     public partial class GameOverPopup : Form
     {
         ChessGame currentGame;
+
+        /// <summary>
+        /// Creates a new popup to get user input when a chess game ends.
+        /// </summary>
+        /// <param name="endType">String to show on the UI, determined by how the game ended</param>
+        /// <param name="color">Losing color (1 or -1) if it's a normal checkmate. Double the losing color (2 or -2) if it was resignation. 0 if stalemate</param>
+        /// <param name="currentGame">The current ChessGame form which opened this window</param>
         public GameOverPopup(string endType, int color, ChessGame currentGame)
         {
             InitializeComponent();
@@ -42,6 +49,9 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Event handler method which starts a new chess game with the same initial settings as the previous.
+        /// </summary>
         private void Restart(object sender, EventArgs e)
         {
             this.Hide();
@@ -52,6 +62,9 @@ namespace ChessClientGUI
             newGame.ShowDialog();
         }
 
+        /// <summary>
+        /// Event handler method which returns to the main menu.
+        /// </summary
         private void ReturnToMenu(object sender, EventArgs e)
         {
             this.Hide();
@@ -62,6 +75,9 @@ namespace ChessClientGUI
             newMenu.ShowDialog();
         }
 
+        /// <summary>
+        /// Event handler method which quits the entire program.
+        /// </summary>
         private void Quit(object sender, EventArgs e)
         {
             Application.Exit();

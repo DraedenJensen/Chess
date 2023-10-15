@@ -13,6 +13,11 @@ namespace ChessClientGUI
     public partial class PromotionPopup : Form
     {
         public string SelectedType { get; set; }
+
+        /// <summary>
+        /// Creates a new popup whenever promotion is needed.
+        /// </summary>
+        /// <param name="color">The color that's promoting</param>
         public PromotionPopup(int color)
         {
             InitializeComponent();
@@ -34,6 +39,9 @@ namespace ChessClientGUI
             }
         }
 
+        /// <summary>
+        /// Event handler method called when the user clicks one of the four buttons deciding piece type.
+        /// </summary>
         public void PieceSelected(object sender, EventArgs e)
         {
             SelectedType = ((Button)sender).Name;
