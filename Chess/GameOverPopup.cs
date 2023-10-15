@@ -28,6 +28,14 @@ namespace ChessClientGUI
             {
                 smallLabel.Text = "Black has won!";
             }
+            else if (color == -2)
+            {
+                smallLabel.Text = "White resigned!";
+            }
+            else if (color == 2)
+            {
+                smallLabel.Text = "Black resigned!";
+            }
             else
             {
                 smallLabel.Text = "";

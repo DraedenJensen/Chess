@@ -41,9 +41,9 @@
             // bigLabel
             // 
             bigLabel.Font = new Font("Imprint MT Shadow", 48F, FontStyle.Regular, GraphicsUnit.Point);
-            bigLabel.Location = new Point(179, 28);
+            bigLabel.Location = new Point(110, 28);
             bigLabel.Name = "bigLabel";
-            bigLabel.Size = new Size(445, 94);
+            bigLabel.Size = new Size(582, 94);
             bigLabel.TabIndex = 0;
             bigLabel.Text = "Checkmate!";
             bigLabel.TextAlign = ContentAlignment.MiddleCenter;

@@ -36,6 +36,7 @@ namespace ChessClientGUI
         Label checkLabel;
         Label turnLabel;
         Label timeLabel;
+        Button resign;
         TextBox moveHistory;
         PictureBox line;
         Stopwatch timer;
@@ -289,6 +290,21 @@ namespace ChessClientGUI
             stalemate.ShowDialog();
         }
 
+        private void Resign(object sender, EventArgs e)
+        {
+            string message;
+            if (turnColor == 1)
+            {
+                message = "Black wins!";
+            }
+            else
+            {
+                message = "White wins!";
+            }
+            GameOverPopup resigned = new(message, turnColor * -2, this);
+            resigned.ShowDialog();
+        }
+
         private void RemovePieceFromSquare((int, int) square)
         {
             PictureBox box = ((PictureBox)boardBox.Controls.Find(square.Item1.ToString() + square.Item2.ToString(), true)[0]);
@@ -398,6 +414,14 @@ namespace ChessClientGUI
             checkLabel.Font = new Font("Imprint MT Shadow", 15F, GraphicsUnit.Point);
             checkLabel.Visible = false;
 
+            resign = new();
+            resign.Size = new Size(100, 50);
+            resign.BackColor = Color.White;
+            resign.Text = "Resign";
+            resign.Font = new Font("Bell MT", 16F, GraphicsUnit.Point);
+            resign.Click += Resign;
+            resign.Visible = false;
+
             moveHistory.BorderStyle = BorderStyle.FixedSingle;
             moveHistory.Size = new Size(325, 500);
             moveHistory.BackColor = Color.DarkGray;
@@ -415,6 +439,7 @@ namespace ChessClientGUI
             Controls.Add(turnLabel);
             Controls.Add(moveHistory);
             Controls.Add(checkLabel);
+            Controls.Add(resign);
         }
 
         private void UpdateElapsedTime()
@@ -465,6 +490,9 @@ namespace ChessClientGUI
                 }
                 moveHistory.Visible = true;
                 checkLabel.Visible = true;
+
+                resign.Location = new Point(timeLabel.Location.X + 150, timeLabel.Location.Y + 120);
+                resign.Visible = true;
             }
             else
             {
