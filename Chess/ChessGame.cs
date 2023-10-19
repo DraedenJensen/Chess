@@ -130,7 +130,7 @@ namespace ChessClientGUI
                         }
                         else if (theme == "green")
                         {
-                            box.BackColor = Color.OliveDrab;
+                            box.BackColor = Color.DarkSeaGreen;
                         }
                     }
 
